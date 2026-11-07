@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block title %}Upload Evidence - EviTrack{% endblock %}
+{% block breadcrumbs %}
+<li><a href="{% url 'evidence:evidence_list' %}">Evidence Vault</a></li>
+<li class="active" aria-current="page">Upload</li>
+{% endblock %}
+
+{% block content %}
+<div class="page-header mb-4">
+    <h1 class="page-title">Upload Evidence</h1>
+    {% if case %}<p class="text-muted mb-0">Case {{ case.case_no }}: {{ case.title }}</p>{% endif %}
+</div>
+<div class="card-ev p-4" style="max-width: 720px;">
+    <form method="post" enctype="multipart/form-data" novalidate id="evidenceUploadForm">
+        {% csrf_token %}
+        {% if not case %}
+            <div class="mb-3">
+                <label for="caseSelect" class="form-label font-sm fw-medium">Case <span class="text-danger">*</span></label>
+                <select name="case_id" id="caseSelect" class="form-select" required>
+                    {% for c in cases %}<option value="{{ c.pk }}">{{ c.case_no }} &middot; {{ c.title }}</option>{% endfor %}
+                </select>
+            </div>
+        {% endif %}
+        {% for err in form.non_field_errors %}
+            <div class="alert alert-danger py-2 px-3 mb-3 font-sm" role="alert">{{ err }}</div>
+        {% endfor %}
+        <div class="mb-3">
+            <label for="{{ form.file.id_for_label }}" class="form-label font-sm fw-medium">Files <span class="text-danger">*</span></label>
+            <input type="file" name="file" id="{{ form.file.id_for_label }}" class="form-control" multiple required>
+            <div class="form-text small">Up to the configured size limit per file. Allowed types are checked on upload.</div>
+            {% for err in form.file.errors %}<div class="text-danger small mt-1">{{ err }}</div>{% endfor %}
+        </div>
+        {% for field in form %}
+            {% if field.name != 'file' %}{% include 'partials/form_field.html' %}{% endif %}
+        {% endfor %}
+        <div id="uploadProgress" class="progress mb-3 d-none" style="height: 6px;" role="progressbar" aria-label="Upload progress">
+            <div class="progress-bar" style="width: 0%;"></div>
+        </div>
+        <button type="submit" class="btn btn-ev-primary"><i class="bi bi-upload"></i> Upload</button>
+        <a href="{% if case %}{% url 'cases:case_detail' case.pk %}?tab=evidence{% else %}{% url 'evidence:evidence_list' %}{% endif %}" class="btn btn-ev-outline ms-2">Cancel</a>
+    </form>
+</div>
+{% endblock %}

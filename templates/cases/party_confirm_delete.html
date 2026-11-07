@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block title %}Delete Party - EviTrack{% endblock %}
+{% block breadcrumbs %}
+<li><a href="{% url 'cases:case_list' %}">Cases</a></li>
+<li><a href="{% url 'cases:case_detail' party.case.pk %}?tab=parties">{{ party.case.case_no }}</a></li>
+<li class="active" aria-current="page">Delete Party</li>
+{% endblock %}
+
+{% block content %}
+<div class="page-header mb-4">
+    <h1 class="page-title">Delete Party</h1>
+</div>
+<div class="card-ev p-4" style="max-width: 560px;">
+    <p>Remove <strong>{{ party.name }}</strong> from {{ party.case.case_no }}? This is recorded in the audit log.</p>
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">Delete Party</button>
+        <a href="{% url 'cases:case_detail' party.case.pk %}?tab=parties" class="btn btn-ev-outline ms-2">Cancel</a>
+    </form>
+</div>
+{% endblock %}

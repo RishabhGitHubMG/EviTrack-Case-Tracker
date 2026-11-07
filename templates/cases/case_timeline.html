@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block title %}Timeline {{ case.case_no }} - EviTrack{% endblock %}
+{% block breadcrumbs %}
+<li><a href="{% url 'cases:case_list' %}">Cases</a></li>
+<li><a href="{% url 'cases:case_detail' case.pk %}">{{ case.case_no }}</a></li>
+<li class="active" aria-current="page">Timeline</li>
+{% endblock %}
+
+{% block content %}
+<div class="page-header mb-4">
+    <h1 class="page-title">Timeline</h1>
+    <div class="text-muted font-sm">{{ case.case_no }} &middot; {{ case.title }}</div>
+</div>
+
+<div class="card-ev p-3">
+    {% include 'cases/partials/timeline_content.html' %}
+</div>
+{% endblock %}

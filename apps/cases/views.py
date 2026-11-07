@@ -1,6 +1,7 @@
 """
 Views for the Cases app: Case listing, creation, updates, detail, assignments, parties, and timeline.
 """
+from datetime import datetime, timezone as dt_timezone
 from typing import Any
 from django.contrib import messages
 from django.contrib.auth import get_user_model
@@ -19,6 +20,8 @@ from apps.accounts.mixins import (
     CaseAccessMixin,
     CaseManagerOrAdminMixin,
     ReadOnlyMixin,
+    get_user_accessible_cases,
+    require_case_access,
 )
 from apps.audit.models import AuditLog
 from apps.audit.services import log_action
@@ -47,7 +50,7 @@ class CaseListView(LoginRequiredMixin, CaseAccessMixin, ListView):
     paginate_by = 25
 
     def get_queryset(self) -> QuerySet:
-        qs = CaseAccessMixin.get_user_cases(self.request.user)
+        qs = get_user_accessible_cases(self.request.user)
         qs = qs.select_related('created_by').prefetch_related('assignments__user')
 
         # Apply search and filters from GET parameters
@@ -95,7 +98,7 @@ class CaseListView(LoginRequiredMixin, CaseAccessMixin, ListView):
 
     def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
         context = super().get_context_data(**kwargs)
-        user_cases = CaseAccessMixin.get_user_cases(self.request.user)
+        user_cases = get_user_accessible_cases(self.request.user)
         context['filter_form'] = CaseFilterForm(self.request.GET)
         context['total_cases_count'] = user_cases.count()
         context['open_cases_count'] = user_cases.filter(status=Case.Status.OPEN).count()
@@ -285,7 +288,7 @@ class CaseAssignView(LoginRequiredMixin, CaseManagerOrAdminMixin, ReadOnlyMixin,
 
     def post(self, request: HttpRequest, pk: int) -> HttpResponse:
         case = get_object_or_404(Case, pk=pk)
-        self.check_case_access(case)
+        require_case_access(self.request.user, case)
 
         form = CaseAssignmentForm(request.POST)
         if form.is_valid():
@@ -328,7 +331,7 @@ class CaseUnassignView(LoginRequiredMixin, CaseManagerOrAdminMixin, ReadOnlyMixi
 
     def post(self, request: HttpRequest, pk: int, assignment_id: int) -> HttpResponse:
         case = get_object_or_404(Case, pk=pk)
-        self.check_case_access(case)
+        require_case_access(self.request.user, case)
 
         assignment = get_object_or_404(CaseAssignment, pk=assignment_id, case=case)
         assigned_user = assignment.user
@@ -360,7 +363,7 @@ class PartyCreateView(LoginRequiredMixin, ReadOnlyMixin, CaseAccessMixin, View):
 
     def post(self, request: HttpRequest, pk: int) -> HttpResponse:
         case = get_object_or_404(Case, pk=pk)
-        self.check_case_access(case)
+        require_case_access(self.request.user, case)
 
         form = PartyForm(request.POST)
         if form.is_valid():
@@ -399,7 +402,7 @@ class PartyUpdateView(LoginRequiredMixin, ReadOnlyMixin, CaseAccessMixin, Update
 
     def dispatch(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
         party = self.get_object()
-        self.check_case_access(party.case)
+        require_case_access(self.request.user, party.case)
         return super().dispatch(request, *args, **kwargs)
 
     def form_valid(self, form: PartyForm) -> HttpResponse:
@@ -435,7 +438,7 @@ class PartyDeleteView(LoginRequiredMixin, ReadOnlyMixin, CaseAccessMixin, Delete
 
     def dispatch(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
         party = self.get_object()
-        self.check_case_access(party.case)
+        require_case_access(self.request.user, party.case)
         return super().dispatch(request, *args, **kwargs)
 
     def delete(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
@@ -478,13 +481,13 @@ class CaseTimelineView(LoginRequiredMixin, CaseAccessMixin, View):
 
     def get(self, request: HttpRequest, pk: int) -> HttpResponse:
         case = get_object_or_404(Case, pk=pk)
-        self.check_case_access(case)
+        require_case_access(self.request.user, case)
 
         timeline_events = []
 
         # 1. Case Creation Event
         timeline_events.append({
-            'timestamp': timezone.datetime.combine(case.opened_on, timezone.datetime.min.time(), tzinfo=timezone.utc),
+            'timestamp': datetime.combine(case.opened_on, datetime.min.time(), tzinfo=dt_timezone.utc),
             'event_type': 'case_created',
             'title': f'Case Initiated: {case.case_no}',
             'description': f'Case established with priority {case.get_priority_display()} ({case.get_case_type_display()}).',
@@ -569,9 +572,14 @@ class CaseTimelineView(LoginRequiredMixin, CaseAccessMixin, View):
         # Sort chronologically descending
         timeline_events.sort(key=lambda x: x['timestamp'], reverse=True)
 
+        template = (
+            'cases/partials/timeline_content.html'
+            if request.headers.get('x-requested-with') == 'XMLHttpRequest'
+            else 'cases/case_timeline.html'
+        )
         return render(
             request,
-            'cases/partials/timeline_content.html',
+            template,
             {
                 'case': case,
                 'timeline_events': timeline_events,

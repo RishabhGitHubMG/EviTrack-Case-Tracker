@@ -1,0 +1,26 @@
+{% extends "auth_base.html" %}
+
+{% block title %}Sign In - EviTrack{% endblock %}
+{% block auth_title %}Sign In{% endblock %}
+{% block auth_subtitle %}<p class="auth-subtitle">Verified access to evidence and case records</p>{% endblock %}
+
+{% block auth_body %}
+<form method="post" action="{% url 'accounts:login' %}" novalidate>
+    {% csrf_token %}
+    {% for err in form.non_field_errors %}
+        <div class="alert alert-danger py-2 px-3 mb-3 font-sm" role="alert">{{ err }}</div>
+    {% endfor %}
+    {% include 'partials/form_field.html' with field=form.email %}
+    {% include 'partials/form_field.html' with field=form.password %}
+    <div class="form-check mb-3">
+        {{ form.remember_me }}
+        <label class="form-check-label font-sm" for="{{ form.remember_me.id_for_label }}">{{ form.remember_me.label }}</label>
+    </div>
+    <button type="submit" class="btn btn-ev-primary w-100 py-2">
+        <i class="bi bi-box-arrow-in-right"></i> Sign In
+    </button>
+</form>
+<p class="text-center font-sm mt-3 mb-0">
+    New to EviTrack? <a href="{% url 'accounts:register' %}">Request an account</a>
+</p>
+{% endblock %}

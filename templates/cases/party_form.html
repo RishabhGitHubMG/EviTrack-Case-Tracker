@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Party - EviTrack{% endblock %}
+{% block breadcrumbs %}
+<li><a href="{% url 'cases:case_list' %}">Cases</a></li>
+<li><a href="{% url 'cases:case_detail' party.case.pk %}?tab=parties">{{ party.case.case_no }}</a></li>
+<li class="active" aria-current="page">Edit Party</li>
+{% endblock %}
+
+{% block content %}
+<div class="page-header mb-4">
+    <h1 class="page-title">Edit Party</h1>
+</div>
+<div class="card-ev p-4" style="max-width: 720px;">
+    <form method="post" novalidate>
+        {% csrf_token %}
+        <div class="row g-2">
+            {% for field in form %}<div class="col-md-6">{% include 'partials/form_field.html' %}</div>{% endfor %}
+        </div>
+        <button type="submit" class="btn btn-ev-primary">Save Party</button>
+        <a href="{% url 'cases:case_detail' party.case.pk %}?tab=parties" class="btn btn-ev-outline ms-2">Cancel</a>
+    </form>
+</div>
+{% endblock %}

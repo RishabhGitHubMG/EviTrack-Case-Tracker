@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block title %}Two-Factor Authenticator - EviTrack{% endblock %}
+{% block breadcrumbs %}<li class="active" aria-current="page">Authenticator App</li>{% endblock %}
+
+{% block content %}
+<div class="page-header mb-4">
+    <h1 class="page-title">Authenticator App</h1>
+    <p class="text-muted mb-0">Use an authenticator app instead of email codes at sign-in.</p>
+</div>
+<div class="card-ev p-4" style="max-width: 620px;">
+    {% if otp_enabled %}
+        <p class="mb-3"><span class="badge-ev badge-success">Enabled</span> Sign-in uses your authenticator app.</p>
+    {% else %}
+        <p class="mb-2">Scan this QR code with your authenticator app, or enter the key manually.</p>
+        <img src="data:image/png;base64,{{ qr_code_b64 }}" alt="Authenticator QR code" width="200" height="200" class="mb-2">
+        <p class="font-sm mb-3"><code>{{ formatted_secret }}</code></p>
+    {% endif %}
+    <form method="post" action="{% url 'accounts:otp_setup' %}" novalidate>
+        {% csrf_token %}
+        {% for err in form.non_field_errors %}
+            <div class="alert alert-danger py-2 px-3 mb-3 font-sm" role="alert">{{ err }}</div>
+        {% endfor %}
+        {{ form.action.as_hidden }}
+        {% include 'partials/form_field.html' with field=form.otp_code %}
+        <button type="submit" class="btn btn-ev-primary">{% if otp_enabled %}Disable App Sign-In{% else %}Enable App Sign-In{% endif %}</button>
+    </form>
+</div>
+{% endblock %}

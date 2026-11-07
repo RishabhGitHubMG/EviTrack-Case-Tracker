@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+
+{% block title %}{{ evidence.evidence_no }} - EviTrack{% endblock %}
+{% block breadcrumbs %}
+<li><a href="{% url 'evidence:evidence_list' %}">Evidence Vault</a></li>
+<li class="active" aria-current="page">{{ evidence.evidence_no }}</li>
+{% endblock %}
+
+{% block content %}
+<div class="page-header mb-4 d-flex justify-content-between align-items-start flex-wrap gap-2">
+    <div>
+        <h1 class="page-title">{{ evidence.title }}</h1>
+        <p class="text-muted mb-0 font-mono">{{ evidence.evidence_no }} &middot; v{{ evidence.version }} &middot; <a href="{% url 'cases:case_detail' evidence.case.pk %}">{{ evidence.case.case_no }}</a></p>
+    </div>
+    <div class="d-flex gap-2 flex-wrap">
+        <form id="verifyForm" method="post" action="{% url 'evidence:evidence_verify' evidence.pk %}" class="d-inline">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-ev-primary btn-sm"><i class="bi bi-patch-check"></i> Verify Integrity</button>
+        </form>
+        <a href="{% url 'evidence:evidence_download' evidence.pk %}" class="btn btn-ev-outline btn-sm"><i class="bi bi-download"></i> Download</a>
+        <a href="{% url 'evidence:evidence_qr' evidence.pk %}" class="btn btn-ev-outline btn-sm"><i class="bi bi-qr-code"></i> QR Label</a>
+        {% if can_manage %}
+        <a href="{% url 'evidence:evidence_update' evidence.pk %}" class="btn btn-ev-outline btn-sm"><i class="bi bi-pencil"></i> Edit</a>
+        {% endif %}
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-lg-8">
+        <div class="card-ev p-4 mb-3">
+            <h2 class="h6">Preview</h2>
+            {% if is_image %}
+                <img src="{% url 'evidence:evidence_preview' evidence.pk %}" alt="Preview of {{ evidence.title }}" class="img-fluid rounded">
+            {% elif is_pdf %}
+                <iframe src="{% url 'evidence:evidence_preview' evidence.pk %}" title="PDF preview" class="w-100 rounded" height="480"></iframe>
+            {% elif is_audio %}
+                <audio controls class="w-100" src="{% url 'evidence:evidence_preview' evidence.pk %}"></audio>
+            {% elif is_video %}
+                <video controls class="w-100 rounded" src="{% url 'evidence:evidence_preview' evidence.pk %}"></video>
+            {% else %}
+                <p class="text-muted font-sm mb-0">No inline preview for this file type. Download it to view.</p>
+            {% endif %}
+        </div>
+
+        <div class="card-ev p-4 mb-3">
+            <h2 class="h6">Chain of custody</h2>
+            {% if custody_history %}
+            <ol class="list-unstyled mb-0 font-sm">
+                {% for event in custody_history %}
+                <li class="py-2 border-bottom">
+                    <span class="badge-ev">{{ event.get_status_display }}</span>
+                    {{ event.from_user|default:"-" }} &rarr; {{ event.to_user|default:"-" }}
+                    <span class="text-muted">{{ event.requested_at|date:"d M Y H:i" }}</span>
+                </li>
+                {% endfor %}
+            </ol>
+            {% else %}
+                <p class="text-muted font-sm mb-0">No custody events recorded.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card-ev p-4 mb-3">
+            <h2 class="h6">Details</h2>
+            <dl class="font-sm mb-0">
+                <dt>Status</dt><dd><span class="badge-ev">{{ evidence.get_status_display }}</span></dd>
+                <dt>Holder</dt><dd>{{ evidence.current_holder|default:"-" }}</dd>
+                <dt>Uploaded by</dt><dd>{{ evidence.uploaded_by|default:"-" }} on {{ evidence.uploaded_at|date:"d M Y H:i" }}</dd>
+                <dt>File</dt><dd class="text-break">{{ evidence.original_filename }} ({{ evidence.mime_type }})</dd>
+                <dt>SHA-256</dt><dd class="font-mono text-break">{{ evidence.sha256 }}</dd>
+                <dt>Tags</dt><dd>{% for tag in evidence.tags.all %}<span class="badge-ev">{{ tag.name }}</span> {% empty %}-{% endfor %}</dd>
+            </dl>
+        </div>
+
+        <div class="card-ev p-4 mb-3">
+            <h2 class="h6">Integrity checks</h2>
+            {% for check in integrity_checks %}
+                <div class="font-sm py-1"><span class="badge-ev">{{ check.get_result_display }}</span> <span class="text-muted">{{ check.checked_at|date:"d M Y H:i" }}</span></div>
+            {% empty %}
+                <p class="text-muted font-sm mb-0">Not verified yet.</p>
+            {% endfor %}
+        </div>
+
+        <div class="card-ev p-4">
+            <h2 class="h6">Versions</h2>
+            <ul class="list-unstyled mb-0 font-sm">
+                {% for v in versions %}
+                <li class="py-1"><a href="{% url 'evidence:evidence_detail' v.pk %}">v{{ v.version }}</a> <span class="text-muted">{{ v.uploaded_at|date:"d M Y" }}</span></li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.getElementById('verifyForm').addEventListener('submit', function (event) {
+    event.preventDefault();
+    var form = event.currentTarget;
+    var token = form.querySelector('[name=csrfmiddlewaretoken]').value;
+    fetch(form.action, {method: 'POST', headers: {'X-CSRFToken': token}, credentials: 'same-origin'})
+        .then(function (response) { return response.json(); })
+        .then(function () { window.location.reload(); })
+        .catch(function () { window.location.reload(); });
+});
+</script>
+{% endblock %}

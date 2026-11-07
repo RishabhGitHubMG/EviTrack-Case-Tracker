@@ -1,0 +1,21 @@
+{% if timeline_events %}
+<ol class="list-unstyled mb-0">
+    {% for event in timeline_events %}
+    <li class="d-flex gap-3 pb-3 mb-3 border-bottom">
+        <div class="timeline-marker {{ event.marker_class }}">
+            <i class="bi {{ event.icon }}"></i>
+        </div>
+        <div class="flex-grow-1">
+            <div class="d-flex justify-content-between flex-wrap gap-2">
+                <span class="fw-semibold">{% if event.link %}<a href="{{ event.link }}">{{ event.title }}</a>{% else %}{{ event.title }}{% endif %}</span>
+                <span class="badge-ev">{{ event.badge_label }}</span>
+            </div>
+            <div class="font-sm text-muted">{{ event.timestamp|date:"d M Y H:i" }}{% if event.actor %} &middot; {{ event.actor }}{% endif %}</div>
+            <div class="font-sm">{{ event.description }}</div>
+        </div>
+    </li>
+    {% endfor %}
+</ol>
+{% else %}
+    {% include 'partials/empty_state.html' with icon='bi-clock-history' title='No timeline events' message='Events will appear as the case develops.' %}
+{% endif %}

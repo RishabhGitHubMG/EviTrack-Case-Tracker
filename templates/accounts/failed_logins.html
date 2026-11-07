@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block title %}Failed Logins - EviTrack{% endblock %}
+{% block breadcrumbs %}<li class="active" aria-current="page">Failed Logins</li>{% endblock %}
+
+{% block content %}
+<div class="page-header mb-4">
+    <h1 class="page-title">Failed Logins</h1>
+    <p class="text-muted mb-0">{{ total_failures_count }} recorded failure(s), {{ active_lockouts_count }} active lockout record(s).</p>
+</div>
+
+<h2 class="h6 mb-2">Active lockout attempts</h2>
+{% if active_attempts %}
+<div class="card-ev table-responsive mb-4">
+    <table class="table align-middle mb-0">
+        <thead><tr><th>Username</th><th>IP address</th><th>Failures</th><th>Last attempt</th></tr></thead>
+        <tbody>
+        {% for a in active_attempts %}
+            <tr><td>{{ a.username }}</td><td>{{ a.ip_address|default:"-" }}</td><td>{{ a.failures_since_start }}</td><td class="font-sm text-muted">{{ a.attempt_time|date:"d M Y H:i" }}</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+    {% include 'partials/empty_state.html' with icon='bi-shield-check' title='No active lockouts' %}
+{% endif %}
+
+<h2 class="h6 mb-2">Failure history</h2>
+{% if failed_logins %}
+<div class="card-ev table-responsive">
+    <table class="table align-middle mb-0">
+        <thead><tr><th>Username</th><th>IP address</th><th>User agent</th><th>Time</th></tr></thead>
+        <tbody>
+        {% for f in failed_logins %}
+            <tr><td>{{ f.username }}</td><td>{{ f.ip_address|default:"-" }}</td><td class="font-sm text-muted text-truncate" style="max-width: 280px;">{{ f.user_agent|default:"-" }}</td><td class="font-sm text-muted">{{ f.attempt_time|date:"d M Y H:i" }}</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% include 'partials/pagination.html' %}
+{% else %}
+    {% include 'partials/empty_state.html' with icon='bi-journal-x' title='No failed logins recorded' %}
+{% endif %}
+{% endblock %}

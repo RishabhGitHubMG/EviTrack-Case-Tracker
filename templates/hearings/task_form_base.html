@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block breadcrumbs %}
+<li><a href="{% url 'hearings:task_list' %}">Tasks</a></li>
+<li><a href="{% url 'cases:case_detail' case.pk %}?tab=tasks">{{ case.case_no }}</a></li>
+<li class="active" aria-current="page">{% block form_heading %}{% endblock %}</li>
+{% endblock %}
+
+{% block content %}
+<div class="page-header mb-4">
+    <h1 class="page-title">{% block page_title %}{% endblock %}</h1>
+    <div class="text-muted font-sm">{{ case.case_no }} &middot; {{ case.title }}</div>
+</div>
+
+<div class="card-ev p-4" style="max-width: 760px;">
+    <form method="post" novalidate>
+        {% csrf_token %}
+        {{ form.case }}
+        {% if form.non_field_errors %}
+            <div class="alert alert-danger" role="alert">
+                {% for err in form.non_field_errors %}<div>{{ err }}</div>{% endfor %}
+            </div>
+        {% endif %}
+        {% for field in form %}
+            {% if field.name != 'case' %}
+                {% include 'partials/form_field.html' with field=field %}
+            {% endif %}
+        {% endfor %}
+        <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-ev-primary">{% block submit_label %}Save{% endblock %}</button>
+            <a href="{% url 'hearings:task_list' %}" class="btn btn-ev-outline">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

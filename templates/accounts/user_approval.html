@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block title %}Approval Queue - EviTrack{% endblock %}
+{% block breadcrumbs %}
+<li><a href="{% url 'accounts:user_list' %}">User Management</a></li>
+<li class="active" aria-current="page">Approval Queue</li>
+{% endblock %}
+
+{% block content %}
+<div class="page-header mb-4">
+    <h1 class="page-title">Approval Queue</h1>
+    <p class="text-muted mb-0">{{ pending_count }} account(s) waiting for approval.</p>
+</div>
+
+{% if pending_users %}
+<div class="card-ev table-responsive">
+    <table class="table align-middle mb-0">
+        <thead><tr><th>Name</th><th>Email</th><th>Requested role</th><th>Registered</th><th class="text-end">Decision</th></tr></thead>
+        <tbody>
+        {% for u in pending_users %}
+            <tr>
+                <td>{{ u.get_full_name|default:u.username }}</td>
+                <td>{{ u.email }}</td>
+                <td><span class="badge-role badge-role-{{ u.role|lower }}">{{ u.get_role_display }}</span></td>
+                <td class="font-sm text-muted">{{ u.date_joined|date:"d M Y" }}</td>
+                <td class="text-end">
+                    <form method="post" action="{% url 'accounts:user_approve' u.pk %}" class="d-inline">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-sm btn-ev-primary"><i class="bi bi-check-lg"></i> Approve</button>
+                    </form>
+                    <form method="post" action="{% url 'accounts:user_reject' u.pk %}" class="d-inline">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-sm btn-ev-outline"><i class="bi bi-x-lg"></i> Reject</button>
+                    </form>
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+    {% include 'partials/empty_state.html' with icon='bi-person-check' title='No pending requests' message='New registrations will appear here for review.' %}
+{% endif %}
+{% endblock %}

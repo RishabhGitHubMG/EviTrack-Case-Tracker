@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Calendar - EviTrack{% endblock %}
+{% block breadcrumbs %}<li class="active" aria-current="page">Calendar</li>{% endblock %}
+
+{% block content %}
+<div class="page-header mb-4 d-flex justify-content-between align-items-center flex-wrap gap-2">
+    <h1 class="page-title">Calendar</h1>
+    <div class="font-sm d-flex gap-3">
+        <span><span class="legend-dot" style="background:#14213D"></span> Hearings</span>
+        <span><span class="legend-dot" style="background:#F2A900"></span> Tasks</span>
+        <span><span class="legend-dot" style="background:#DC2626"></span> Filing deadlines</span>
+    </div>
+</div>
+
+<div class="card-ev p-3">
+    <div id="calendar" data-events-url="{% url 'hearings_api:calendar_events_api' %}"></div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
+<script src="{% static 'js/calendar.js' %}"></script>
+{% endblock %}

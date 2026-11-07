@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block title %}My Profile - EviTrack{% endblock %}
+{% block breadcrumbs %}<li class="active" aria-current="page">My Profile</li>{% endblock %}
+
+{% block content %}
+<div class="page-header mb-4 d-flex justify-content-between align-items-center flex-wrap gap-2">
+    <div>
+        <h1 class="page-title">My Profile</h1>
+        <p class="text-muted mb-0">{{ user.email }} &middot; <span class="badge-role badge-role-{{ user.role|lower }}">{{ user.get_role_display }}</span></p>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{% url 'accounts:password_change' %}" class="btn btn-ev-outline btn-sm"><i class="bi bi-key"></i> Change Password</a>
+        <a href="{% url 'accounts:otp_setup' %}" class="btn btn-ev-outline btn-sm"><i class="bi bi-phone"></i> Authenticator App</a>
+    </div>
+</div>
+<div class="card-ev p-4" style="max-width: 640px;">
+    <form method="post" action="{% url 'accounts:profile' %}" novalidate>
+        {% csrf_token %}
+        {% for field in form %}
+            {% include 'partials/form_field.html' %}
+        {% endfor %}
+        <button type="submit" class="btn btn-ev-primary">Save Changes</button>
+    </form>
+</div>
+{% endblock %}

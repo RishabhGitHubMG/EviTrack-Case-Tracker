@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block title %}QR Label {{ evidence.evidence_no }} - EviTrack{% endblock %}
+{% block breadcrumbs %}
+<li><a href="{% url 'evidence:evidence_list' %}">Evidence Vault</a></li>
+<li><a href="{% url 'evidence:evidence_detail' evidence.pk %}">{{ evidence.evidence_no }}</a></li>
+<li class="active" aria-current="page">QR Label</li>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4 d-print-none">
+    <h1 class="page-title mb-0">QR Label</h1>
+    <button type="button" class="btn btn-ev-primary btn-sm" onclick="window.print()"><i class="bi bi-printer"></i> Print</button>
+</div>
+<div class="card-ev p-4 evidence-qr-label" style="max-width: 360px;">
+    <img src="{{ qr_image_url }}" alt="QR code linking to {{ evidence.evidence_no }}" width="180" height="180">
+    <div class="font-mono fw-semibold mt-2">{{ evidence.evidence_no }}</div>
+    <div class="font-sm">Case {{ case.case_no }}</div>
+    <div class="font-mono font-sm text-muted">{{ evidence.sha256|slice:":16" }}</div>
+    <div class="font-sm text-muted text-break">{{ request.scheme }}://{{ request.get_host }}{% url 'evidence:evidence_detail' evidence.pk %}</div>
+</div>
+{% endblock %}
