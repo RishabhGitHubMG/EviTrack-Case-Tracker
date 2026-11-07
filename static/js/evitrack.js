@@ -723,6 +723,18 @@
      11. HASH DISPLAY & COPY-TO-CLIPBOARD
      ========================================================================== */
 
+  EviTrack.initDataActions = function () {
+    document.addEventListener('click', (e) => {
+      const action = e.target.closest('[data-action]');
+      if (!action) return;
+      if (action.dataset.action === 'print') window.print();
+      if (action.dataset.action === 'back') {
+        e.preventDefault();
+        history.back();
+      }
+    });
+  };
+
   EviTrack.initHashHelpers = function () {
     document.addEventListener('click', (e) => {
       const copyBtn = e.target.closest('.hash-copy-btn, [data-copy-hash]');
@@ -884,6 +896,7 @@
     EviTrack.initGlobalSearch();
     EviTrack.initDropzones();
     EviTrack.initConfirmTriggers();
+    EviTrack.initDataActions();
     EviTrack.initHashHelpers();
     EviTrack.initTableSorting();
     EviTrack.formatRelativeDates();

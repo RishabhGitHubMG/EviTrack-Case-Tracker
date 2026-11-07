@@ -1,9 +1,14 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block title %}Upload Evidence - EviTrack{% endblock %}
 {% block breadcrumbs %}
 <li><a href="{% url 'evidence:evidence_list' %}">Evidence Vault</a></li>
 <li class="active" aria-current="page">Upload</li>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/evidence-upload.js' %}"></script>
 {% endblock %}
 
 {% block content %}
