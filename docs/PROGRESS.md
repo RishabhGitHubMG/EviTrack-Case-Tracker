@@ -14,10 +14,10 @@ Status legend: **Complete** (works, tested) · **Partial** (code exists, not wir
 
 ## STATUS HEADER (keep current)
 - ANALYSIS DONE: YES (section 1 kept as written; accounts and case-access items re-verified in session 2)
-- Last updated: session 10
-- Session number: 10
+- Last updated: session 11
+- Session number: 11
 - Overall completion: not measured (see checklist, section 3)
-- **NEXT ACTION:** Step 2: finish UI leftovers: verify dark-mode persistence per user, print styles, 403/404/500 rendering, the session-timeout warning modal, and profile/change-password flows; run responsive checks on key pages. Then Docker/evidence X-Accel setup, `.env.example`, README/demo/future-scope docs, and final status reconciliation/QA. Browser-test authenticated flows when OTP login can be completed in the preview.
+- **NEXT ACTION:** Step 2 (UI leftovers, continued): browser-verify dark-mode persistence per user, the session-timeout warning modal, and profile/change-password flows; run responsive checks on dashboard, case list, case detail and evidence detail (mobile sidebar drawer, table scrolling); check loading/empty/error states and focus/contrast. Print CSS, branded 403/404/500 and the dark-mode save endpoint exist in code (session 11 fixed `javascript:` links in error pages). Then Docker/evidence X-Accel setup, `.env.example`, README/demo/future-scope docs, and final status reconciliation/QA.
 
 ## 1. Phase 0 analysis (baseline as found)
 
@@ -95,6 +95,7 @@ Gaps: `Notification` has no `title`, `level` or `case`; callers must use the not
 - Case create and edit share `cases/case_form.html` through template blocks.
 
 - Branch: work continues on the existing `ai_main_6c48a31b77464f868b18` branch. At session 6 start it matched `main` at `af2fa64`.
+- Session 11 branch: `ai_main_f3020ee7e5464f779c07` at `main` commit `5e4930a` (PR #5 merged). Pushes to this branch are authorized by the project owner after each PROGRESS.md update.
 - Email OTP is required after every password login; users with TOTP enabled complete an additional authenticator step. Both flows and email-code lockout are tested; browser login remains unverified.
 - Custody QR label is `custody/qr_label.html` (HTML page). `?format=png` or `?format=pdf` returns the image. It includes custodian and intake date, so it stays separate from the evidence-vault label at `evidence:evidence_qr`.
 - Tamper alerts (single verify and bulk task) go to the case's Case Managers (creator or assigned) via `notify_case_managers`, falling back to admins. Email delivery remains outstanding.
@@ -114,7 +115,7 @@ Each row is updated as work is completed. Final state must be **Complete** for e
 | Foundation | Services layer (hashing, custody, reminders) and thin views | Partial |
 | Foundation | Evidence storage outside web root, served via authenticated audit-logged view | Partial |
 | Audit | Hash chain with verify action and database immutability | Partial (admin verify action, ORM/queryset protection and SQLite triggers tested; PostgreSQL trigger not live-tested) |
-| UI | Print styles | Missing |
+| UI | Print styles | Partial (`@media print` block in evitrack.css hides chrome and cards; not printed in a browser; no report/case print header) |
 | 1 Accounts | Register, approval queue, approve/reject, role change | Partial |
 | 1 Accounts | Login with email OTP (every login), TOTP option, profile, password change | Complete for OTP flow (email plus optional additional TOTP and lockout tests pass; browser not tested); profile/password flows remain partial |
 | 1 Accounts | Session timeout (15 min, warning modal), lockout, failed-login view | Partial |
@@ -148,6 +149,7 @@ Each row is updated as work is completed. Final state must be **Complete** for e
 - Demo credentials: `admin@`, `manager@`, `investigator@`, `custodian@`, `reviewer@demo.evitrack.test`, password `Demo#Pass2026`. `pending@demo.evitrack.test` cannot sign in (awaiting approval).
 
 ## 5. SESSION LOG (newest on top)
+- Session 11: UI audit of existing code (grep only). Dark mode save endpoint, print CSS, branded 403/404/500 templates, session warning modal and password change view already exist. Fixed `javascript:` links in 403/404/500 and removed an unverified audit/alert claim from the 500 page. Full suite passed before the template edits; not browser-tested (no browser run this session). Next: browser check of dark mode, session modal, profile/password, and responsive pages.
 - Session 10: added SQLite/PostgreSQL audit update/delete triggers and queryset/admin protection; added tested admin hash-chain verification. Rate-limited login, OTP verification and evidence upload using a shared cache (Redis-backed in production). Confirmed CSP headers and moved three inline scripts to external assets; production HSTS/X-Frame settings and `check --deploy` now pass cleanly. Full suite: 106 passed. SQLite trigger tests pass; live PostgreSQL trigger and browser flows were not tested. Next: UI leftovers.
 - Session 9: implemented grouped global search for cases, parties, and evidence by evidence number/title/tag/SHA-256, scoped to the user's accessible cases. Added tests for all categories, hash/number search, inaccessible-case exclusion, unauthenticated access, short queries and header markup. Full suite: 97 passed. Preview `/dashboard/` redirected to OTP login, so authenticated search dropdown and `/` keypress were not browser-tested. Next: DB-level audit immutability and security hardening.
 - Session 8: implemented admin audit viewer filters (user/action/date/case), personal access-filtered activity, and filtered CSV export. Implemented five case-scoped WeasyPrint PDFs with generated-by/date footer and report-generation audit events. All five reports return PDF and inaccessible cases return 404; route crawl passes with an empty placeholder allowlist. Full suite: 92 passed (WeasyPrint reports one HarfBuzz-Subset deprecation warning). Authenticated pages were not browser-tested. Next: global search.

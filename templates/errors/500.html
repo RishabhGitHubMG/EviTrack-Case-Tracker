@@ -77,6 +77,8 @@
             display: inline-flex;
             align-items: center;
             gap: 0.5rem;
+            font-size: 1rem;
+            cursor: pointer;
         }
     </style>
 </head>
@@ -96,7 +98,7 @@
                 <i class="bi bi-exclamation-triangle"></i> Automated Incident Logged
             </div>
             <div class="text-muted small">
-                An immutable crash report has been recorded in the audit pipeline. System administrators and investigators-in-charge have been alerted.
+                The error has been logged on the server. If it keeps happening, contact your system administrator.
             </div>
         </div>
 
@@ -104,9 +106,9 @@
             <a href="/" class="btn-ev-primary">
                 <i class="bi bi-arrow-repeat"></i> Return to Safety
             </a>
-            <a href="javascript:location.reload()" class="btn-ev-outline">
+            <button type="button" class="btn-ev-outline" onclick="window.location.reload()">
                 <i class="bi bi-arrow-clockwise"></i> Retry Action
-            </a>
+            </button>
         </div>
     </div>
 </body>
