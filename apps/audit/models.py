@@ -50,12 +50,21 @@ class ChainVerificationResult:
         )
 
 
+class AuditLogQuerySet(models.QuerySet):
+    def update(self, **kwargs):
+        raise TypeError('Audit logs cannot be modified')
+
+    def delete(self):
+        raise TypeError('Audit logs cannot be deleted')
+
+
 class AuditLog(models.Model):
+    objects = AuditLogQuerySet.as_manager()
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         null=True,
         blank=True,
-        on_delete=models.SET_NULL,
+        on_delete=models.PROTECT,
         related_name='audit_logs',
         help_text='Actor performing the action (null for automated system events)',
     )
@@ -67,7 +76,7 @@ class AuditLog(models.Model):
         ContentType,
         null=True,
         blank=True,
-        on_delete=models.SET_NULL,
+        on_delete=models.PROTECT,
         help_text='Content type of the target entity',
     )
     object_id = models.CharField(
@@ -79,7 +88,7 @@ class AuditLog(models.Model):
         'cases.Case',
         null=True,
         blank=True,
-        on_delete=models.SET_NULL,
+        on_delete=models.PROTECT,
         related_name='audit_entries',
         help_text='Case context associated with this log entry',
     )

@@ -71,6 +71,13 @@ MIDDLEWARE = [
     'apps.accounts.middleware.SessionTimeoutMiddleware',
 ]
 
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'evitrack-default',
+    }
+}
+
 AUTHENTICATION_BACKENDS = [
     # AxesStandaloneBackend should be first to monitor all login attempts
     'axes.backends.AxesStandaloneBackend',
@@ -255,6 +262,12 @@ EVIDENCE_X_ACCEL_LOCATION = '/protected-evidence/'
 EMAIL_OTP_TTL_MINUTES = 10
 EMAIL_OTP_MAX_ATTEMPTS = 5
 EMAIL_OTP_LOCKOUT_MINUTES = 15
+AUTH_LOGIN_RATE_LIMIT = int(os.environ.get('AUTH_LOGIN_RATE_LIMIT', 10))
+AUTH_LOGIN_RATE_WINDOW_SECONDS = int(os.environ.get('AUTH_LOGIN_RATE_WINDOW_SECONDS', 60))
+OTP_VERIFY_RATE_LIMIT = int(os.environ.get('OTP_VERIFY_RATE_LIMIT', 10))
+OTP_VERIFY_RATE_WINDOW_SECONDS = int(os.environ.get('OTP_VERIFY_RATE_WINDOW_SECONDS', 60))
+EVIDENCE_UPLOAD_RATE_LIMIT = int(os.environ.get('EVIDENCE_UPLOAD_RATE_LIMIT', 10))
+EVIDENCE_UPLOAD_RATE_WINDOW_SECONDS = int(os.environ.get('EVIDENCE_UPLOAD_RATE_WINDOW_SECONDS', 60))
 
 REMINDER_MAX_ATTEMPTS = 3
 REMINDER_BACKOFF_BASE_MINUTES = 5

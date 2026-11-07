@@ -1,10 +1,11 @@
-from django.contrib import admin
+from django.contrib import admin, messages
 
 from apps.audit.models import AuditLog
 
 
 @admin.register(AuditLog)
 class AuditLogAdmin(admin.ModelAdmin):
+    actions = ['verify_audit_chain']
     list_display = [
         'timestamp',
         'user',
@@ -53,3 +54,28 @@ class AuditLogAdmin(admin.ModelAdmin):
 
     def has_delete_permission(self, request, obj=None) -> bool:
         return False
+
+    def get_actions(self, request):
+        return {
+            'verify_audit_chain': (
+                self.verify_audit_chain,
+                'verify_audit_chain',
+                'Verify the audit hash chain',
+            ),
+        }
+
+    @admin.action(description='Verify the audit hash chain')
+    def verify_audit_chain(self, request, queryset):
+        result = AuditLog.verify_chain()
+        if result.is_valid:
+            self.message_user(
+                request,
+                f'Audit chain verified: {result.verified_count} entries checked.',
+                level=messages.SUCCESS,
+            )
+        else:
+            self.message_user(
+                request,
+                f'Audit chain verification failed: {result.error}',
+                level=messages.ERROR,
+            )
