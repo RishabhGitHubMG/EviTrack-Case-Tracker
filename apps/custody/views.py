@@ -210,9 +210,9 @@ class CustodyRespondView(LoginRequiredMixin, View):
 
 class CustodyTimelineView(CaseAccessMixin, View):
     """
-    AJAX view returning custody timeline HTML partial for an evidence item.
+    Page view for the custody timeline of an evidence item.
     """
-    template_name = 'custody/custody_timeline.html'
+    template_name = 'custody/custody_timeline_page.html'
 
     def get(self, request: HttpRequest, evidence_id: int) -> HttpResponse:
         evidence = get_object_or_404(

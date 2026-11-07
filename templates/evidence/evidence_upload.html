@@ -17,7 +17,8 @@
     {% if case %}<p class="text-muted mb-0">Case {{ case.case_no }}: {{ case.title }}</p>{% endif %}
 </div>
 <div class="card-ev p-4" style="max-width: 720px;">
-    <form method="post" enctype="multipart/form-data" novalidate id="evidenceUploadForm">
+    <form method="post" action="{{ request.path }}" enctype="multipart/form-data" novalidate id="evidenceUploadForm"
+          data-done-url="{% if case %}{% url 'cases:case_detail' case.pk %}?tab=evidence{% else %}{% url 'evidence:evidence_list' %}{% endif %}">
         {% csrf_token %}
         {% if not case %}
             <div class="mb-3">
@@ -30,19 +31,26 @@
         {% for err in form.non_field_errors %}
             <div class="alert alert-danger py-2 px-3 mb-3 font-sm" role="alert">{{ err }}</div>
         {% endfor %}
+
         <div class="mb-3">
-            <label for="{{ form.file.id_for_label }}" class="form-label font-sm fw-medium">Files <span class="text-danger">*</span></label>
-            <input type="file" name="file" id="{{ form.file.id_for_label }}" class="form-control" multiple required>
-            <div class="form-text small">Up to the configured size limit per file. Allowed types are checked on upload.</div>
+            <span class="form-label font-sm fw-medium d-block" id="fileLabel">Files <span class="text-danger">*</span></span>
+            <div class="ev-dropzone" id="evDropzone" tabindex="0" role="button" aria-labelledby="fileLabel" aria-describedby="dropzoneHelp">
+                <i class="bi bi-cloud-arrow-up fs-2 text-ev-navy" aria-hidden="true"></i>
+                <div class="fw-medium">Drag files here, or <span class="text-decoration-underline">choose files</span></div>
+                <div class="form-text small" id="dropzoneHelp">Each file is hashed on arrival. Allowed types are checked on upload.</div>
+                <input type="file" name="file" id="{{ form.file.id_for_label }}" class="visually-hidden" multiple required tabindex="-1">
+            </div>
             {% for err in form.file.errors %}<div class="text-danger small mt-1">{{ err }}</div>{% endfor %}
+            <ul class="list-unstyled mt-3 mb-0 ev-upload-queue" id="uploadQueue" aria-live="polite"></ul>
         </div>
+
         {% for field in form %}
             {% if field.name != 'file' %}{% include 'partials/form_field.html' %}{% endif %}
         {% endfor %}
-        <div id="uploadProgress" class="progress mb-3 d-none" style="height: 6px;" role="progressbar" aria-label="Upload progress">
-            <div class="progress-bar" style="width: 0%;"></div>
-        </div>
-        <button type="submit" class="btn btn-ev-primary"><i class="bi bi-upload"></i> Upload</button>
+
+        <div id="uploadError" class="alert alert-danger py-2 px-3 mb-3 font-sm d-none" role="alert"></div>
+
+        <button type="submit" class="btn btn-ev-primary" id="uploadSubmit" disabled><i class="bi bi-upload"></i> Upload</button>
         <a href="{% if case %}{% url 'cases:case_detail' case.pk %}?tab=evidence{% else %}{% url 'evidence:evidence_list' %}{% endif %}" class="btn btn-ev-outline ms-2">Cancel</a>
     </form>
 </div>
