@@ -1,10 +1,12 @@
-"""
-URL configuration for core app (dashboard, home, common pages).
-"""
 from django.urls import path
+
+from apps.core import views
 
 app_name = 'core'
 
 urlpatterns = [
-    # Dashboard and core views will be added here
+    path('', views.LandingView.as_view(), name='landing'),
+    path('dashboard/', views.DashboardView.as_view(), name='dashboard'),
+    path('api/search/', views.SearchAPIView.as_view(), name='search_api'),
+    path('api/dashboard/charts/', views.DashboardChartsAPIView.as_view(), name='dashboard_charts'),
 ]

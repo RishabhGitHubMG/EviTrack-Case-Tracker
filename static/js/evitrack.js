@@ -26,6 +26,7 @@
   const EviTrack = window.EviTrack || {};
 
   // Configuration defaults (can be overridden via window.EviTrackConfig in templates)
+  const bodyData = document.body ? document.body.dataset : {};
   const Config = Object.assign(
     {
       csrfCookieName: 'csrftoken',
@@ -33,14 +34,16 @@
       sidebarStorageKey: 'evitrack_sidebar_collapsed',
       sessionWarningMinutes: 13,
       sessionTimeoutMinutes: 15,
-      logoutUrl: '/accounts/logout/',
       notificationPollIntervalMs: 30000,
-      notificationCountUrl: '/notifications/api/unread-count/',
-      searchApiUrl: '/cases/api/search/',
-      themeToggleUrl: '/accounts/api/preferences/theme/',
-      isAuthenticated: false,
     },
-    window.EviTrackConfig || {}
+    {
+      logoutUrl: bodyData.logoutUrl,
+      sessionPingUrl: bodyData.sessionPingUrl,
+      notificationCountUrl: bodyData.notificationCountUrl,
+      searchApiUrl: bodyData.searchUrl,
+      themeToggleUrl: bodyData.themeUrl,
+      isAuthenticated: bodyData.authenticated === 'true',
+    }
   );
 
   /* ==========================================================================
@@ -260,7 +263,7 @@
       staySignedInBtn.addEventListener('click', () => {
         recordActivity();
         // Optional ping to keep server session alive
-        fetch('/accounts/api/session/ping/', {
+        fetch(Config.sessionPingUrl, {
           method: 'POST',
           headers: { 'X-CSRFToken': EviTrack.getCsrfToken() },
         }).catch(() => {});

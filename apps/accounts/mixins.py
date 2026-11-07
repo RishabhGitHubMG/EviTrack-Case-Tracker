@@ -7,6 +7,7 @@ from typing import Any, Optional
 
 from django.contrib.auth.mixins import AccessMixin, UserPassesTestMixin
 from django.core.exceptions import PermissionDenied
+from django.db.models import Q
 from django.shortcuts import get_object_or_404
 
 logger = logging.getLogger(__name__)
@@ -14,35 +15,48 @@ logger = logging.getLogger(__name__)
 
 def check_case_access(user: Any, case: Any) -> bool:
     """
-    Stand-alone helper function to verify if a user has access rights to a specific case.
-    Admins, Case Managers, and Superusers have global case access.
-    Other users require an active CaseAssignment on that specific case.
+    Returns True when the user may access the case.
+    Admins and superusers see every case. Case Managers see cases they created or are
+    assigned to. Every other role needs a CaseAssignment on the case.
     """
     if not user or not user.is_authenticated:
         return False
 
-    if getattr(user, 'is_admin', False) or getattr(user, 'is_case_manager', False) or getattr(user, 'is_superuser', False):
+    if getattr(user, 'is_admin', False) or getattr(user, 'is_superuser', False):
         return True
 
     if case is None:
         return False
 
     from apps.cases.models import CaseAssignment
-    return CaseAssignment.objects.filter(case=case, user=user).exists()
+    if CaseAssignment.objects.filter(case=case, user=user).exists():
+        return True
+    return bool(getattr(user, 'is_case_manager', False) and case.created_by_id == user.pk)
+
+
+def require_case_access(user: Any, case: Any) -> None:
+    if not check_case_access(user, case):
+        logger.warning(
+            'Denied access to case %s for user %s',
+            getattr(case, 'pk', None),
+            getattr(user, 'pk', None),
+        )
+        raise PermissionDenied('You do not have authorization to access or modify this case.')
 
 
 def get_user_accessible_cases(user: Any):
     """
-    Returns a QuerySet of all Case instances the specified user is authorized to view.
-    Admins, Case Managers, and Superusers can view all cases.
-    Other roles are restricted to cases they are actively assigned to.
+    Returns the Case queryset visible to the user (see check_case_access).
     """
     from apps.cases.models import Case
     if not user or not user.is_authenticated:
         return Case.objects.none()
 
-    if getattr(user, 'is_admin', False) or getattr(user, 'is_case_manager', False) or getattr(user, 'is_superuser', False):
+    if getattr(user, 'is_admin', False) or getattr(user, 'is_superuser', False):
         return Case.objects.all()
+
+    if getattr(user, 'is_case_manager', False):
+        return Case.objects.filter(Q(assignments__user=user) | Q(created_by=user)).distinct()
 
     return Case.objects.filter(assignments__user=user).distinct()
 
