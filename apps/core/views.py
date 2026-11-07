@@ -1,7 +1,7 @@
 from typing import Any
 
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.db.models import Count
+from django.db.models import Count, Q
 from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import render
 from django.urls import reverse
@@ -9,7 +9,7 @@ from django.views import View
 from django.views.generic import TemplateView
 
 from apps.accounts.mixins import get_user_accessible_cases
-from apps.cases.models import Case
+from apps.cases.models import Case, Party
 from apps.custody.models import CustodyEvent
 from apps.evidence.models import Evidence
 
@@ -56,7 +56,48 @@ class DashboardView(LoginRequiredMixin, TemplateView):
 
 class SearchAPIView(LoginRequiredMixin, View):
     def get(self, request: HttpRequest) -> JsonResponse:
-        return JsonResponse({'results': []})
+        query = request.GET.get('q', '').strip()[:100]
+        if len(query) < 2:
+            return JsonResponse({'results': []})
+
+        accessible_cases = get_user_accessible_cases(request.user)
+        results = []
+        cases = Case.objects.filter(pk__in=accessible_cases).filter(
+            Q(case_no__icontains=query) | Q(title__icontains=query)
+        ).order_by('case_no')[:5]
+        results.extend({
+            'category': 'Cases',
+            'title': f'{case.case_no} — {case.title}',
+            'subtitle': case.get_status_display(),
+            'url': reverse('cases:case_detail', kwargs={'pk': case.pk}),
+            'icon': 'bi-folder2-open',
+        } for case in cases)
+
+        parties = Party.objects.filter(case__in=accessible_cases).filter(
+            Q(name__icontains=query) | Q(email__icontains=query) | Q(phone__icontains=query)
+        ).select_related('case').order_by('name').distinct()[:5]
+        results.extend({
+            'category': 'Parties',
+            'title': party.name,
+            'subtitle': f'{party.get_party_type_display()} · {party.case.case_no}',
+            'url': f"{reverse('cases:case_detail', kwargs={'pk': party.case_id})}#parties",
+            'icon': 'bi-person-vcard',
+        } for party in parties)
+
+        evidence_items = Evidence.objects.filter(case__in=accessible_cases, is_latest_version=True).filter(
+            Q(evidence_no__icontains=query)
+            | Q(title__icontains=query)
+            | Q(sha256__icontains=query)
+            | Q(tags__name__icontains=query)
+        ).select_related('case').order_by('evidence_no').distinct()[:5]
+        results.extend({
+            'category': 'Evidence',
+            'title': f'{item.evidence_no} — {item.title}',
+            'subtitle': f'{item.case.case_no} · {item.get_status_display()}',
+            'url': reverse('evidence:evidence_detail', kwargs={'pk': item.pk}),
+            'icon': 'bi-file-earmark-lock',
+        } for item in evidence_items)
+        return JsonResponse({'results': results})
 
 
 class DashboardChartsAPIView(LoginRequiredMixin, View):
