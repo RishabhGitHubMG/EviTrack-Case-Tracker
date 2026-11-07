@@ -7,7 +7,7 @@ from django.contrib.auth import get_user_model
 from django.urls import reverse
 from django.utils import timezone
 
-from apps.notifications.services import create_notification
+from apps.notifications.services import notify_case_managers
 
 logger = logging.getLogger(__name__)
 
@@ -55,14 +55,12 @@ def verify_case_evidence_task(self, case_id: int, user_id: int | None = None) ->
             evidence.status = Evidence.Status.FLAGGED
             evidence.save(update_fields=['status'])
 
-            # Send critical alert notification
-            if user:
-                create_notification(
-                    user=user,
-                    message=f"INTEGRITY BREACH: Evidence {evidence.evidence_no} failed SHA-256 verification in Case {case.case_no}.",
-                    link=reverse('evidence:evidence_detail', kwargs={'pk': evidence.pk}),
-                    notification_type=Notification.NotificationType.DANGER,
-                )
+            notify_case_managers(
+                case=case,
+                message=f"INTEGRITY BREACH: Evidence {evidence.evidence_no} failed SHA-256 verification in Case {case.case_no}.",
+                link=reverse('evidence:evidence_detail', kwargs={'pk': evidence.pk}),
+                notification_type=Notification.NotificationType.DANGER,
+            )
 
             log_action(
                 user=user,

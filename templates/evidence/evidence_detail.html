@@ -17,6 +17,7 @@
             {% csrf_token %}
             <button type="submit" class="btn btn-ev-primary btn-sm"><i class="bi bi-patch-check"></i> Verify Integrity</button>
         </form>
+        <a href="{% url 'custody:custody_request' evidence.pk %}" class="btn btn-ev-outline btn-sm"><i class="bi bi-arrow-left-right"></i> Transfer Custody</a>
         <a href="{% url 'evidence:evidence_download' evidence.pk %}" class="btn btn-ev-outline btn-sm"><i class="bi bi-download"></i> Download</a>
         <a href="{% url 'evidence:evidence_qr' evidence.pk %}" class="btn btn-ev-outline btn-sm"><i class="bi bi-qr-code"></i> QR Label</a>
         {% if can_manage %}
@@ -44,19 +45,7 @@
 
         <div class="card-ev p-4 mb-3">
             <h2 class="h6">Chain of custody</h2>
-            {% if custody_history %}
-            <ol class="list-unstyled mb-0 font-sm">
-                {% for event in custody_history %}
-                <li class="py-2 border-bottom">
-                    <span class="badge-ev">{{ event.get_status_display }}</span>
-                    {{ event.from_user|default:"-" }} &rarr; {{ event.to_user|default:"-" }}
-                    <span class="text-muted">{{ event.requested_at|date:"d M Y H:i" }}</span>
-                </li>
-                {% endfor %}
-            </ol>
-            {% else %}
-                <p class="text-muted font-sm mb-0">No custody events recorded.</p>
-            {% endif %}
+            {% include 'custody/custody_timeline.html' %}
         </div>
     </div>
 

@@ -71,7 +71,7 @@ ARG_SOURCES = {
         'evidence_detail': 'evidence', 'evidence_update': 'evidence', 'evidence_download': 'evidence',
         'evidence_verify': 'evidence', 'evidence_qr': 'evidence', 'evidence_preview': 'evidence',
         'custody_respond': 'custody',
-        'notification_detail': 'notification',
+        'notification_detail': 'notification', 'notification_mark_read': 'notification',
         'api_evidence_verify': 'evidence',
         'hearing_detail': 'hearing', 'hearing_update': 'hearing', 'hearing_outcome': 'hearing',
         'task_update': 'task', 'task_status': 'task',
@@ -95,10 +95,26 @@ def _kwargs_for(full_name, arg_names, world):
     return kwargs
 
 
+NON_HTML_OK_TYPES = {'application/json', 'image/png', 'application/pdf', 'text/csv'}
+
+# Placeholder routes still awaiting a real view. Remove each entry when its view is built;
+# the test fails if a new placeholder appears or an entry here is already real.
+KNOWN_PLACEHOLDERS = {'audit:audit_log_list', 'audit:my_activity', 'reports:report_list'}
+
+
+def _is_placeholder(response) -> bool:
+    if response.status_code != 200:
+        return False
+    content_type = response['Content-Type'].split(';')[0].strip()
+    if content_type == 'text/html':
+        return not response.templates
+    return content_type not in NON_HTML_OK_TYPES
+
+
 @pytest.mark.django_db
-def test_every_named_url_renders_without_server_errors(client_for, world):
+def test_every_named_url_renders_real_responses(client_for, world):
     admin = world['admin']
-    checked, unmapped = [], []
+    checked, unmapped, placeholders = [], [], set()
 
     for route, full_name in _named_routes():
         arg_names = ARG_PATTERN.findall(route)
@@ -110,7 +126,13 @@ def test_every_named_url_renders_without_server_errors(client_for, world):
         url = reverse(full_name, kwargs=kwargs)
         response = client_for(admin).get(url)
         assert response.status_code < 500, f'{full_name} ({url}) returned {response.status_code}'
+        if _is_placeholder(response):
+            placeholders.add(full_name)
         checked.append(full_name)
 
     assert not unmapped, f'Add object mapping for: {unmapped}'
+    assert placeholders == KNOWN_PLACEHOLDERS, (
+        f'Unexpected placeholder routes: {sorted(placeholders - KNOWN_PLACEHOLDERS)}; '
+        f'allowlisted routes now real (remove them): {sorted(KNOWN_PLACEHOLDERS - placeholders)}'
+    )
     assert len(checked) >= 40

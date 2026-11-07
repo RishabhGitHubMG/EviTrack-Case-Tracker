@@ -14,10 +14,10 @@ Status legend: **Complete** (works, tested) · **Partial** (code exists, not wir
 
 ## STATUS HEADER (keep current)
 - ANALYSIS DONE: YES (section 1 kept as written; accounts and case-access items re-verified in session 2)
-- Last updated: session 4
-- Session number: 4
+- Last updated: session 5
+- Session number: 5
 - Overall completion: not measured (see checklist, section 3)
-- **NEXT ACTION:** Custody: add tests for request, accept/reject POST flows and the timeline (templates exist and render). Then notifications: replace the placeholder `notifications` views (plain-text lambdas) with a bell and list template. Then reminders/Celery, reports (PDF), search, audit viewer, `seed_demo`, remaining tests, Docker/README. Browser-test the dashboard, calendar and timeline on the dev server (not done yet; no browser tool used).
+- **NEXT ACTION:** Step 4 in order: (a) reminders and notification delivery: idempotent Celery tasks, retry with exponential backoff (max 3), escalation to the Case Manager, email for tamper alerts; (b) reports: dashboard KPIs and 5 WeasyPrint PDFs with audit logging; (c) global search at `core:search_api`; (d) audit viewer with filters and CSV export, replacing the `audit` placeholders and emptying `KNOWN_PLACEHOLDERS` in `apps/core/tests/test_route_smoke.py`; (e) remaining tests; (f) Dockerfile, compose, README. Browser-check authenticated pages with the demo accounts once a browser tool can type into the login form.
 
 ## 1. Phase 0 analysis (baseline as found)
 
@@ -94,6 +94,13 @@ Gaps: `Notification` has no `title`, `level` or `case`. Reminder `dedup_key` omi
 - `templates/base.html` and `static/css/evitrack.css` already had the design tokens, dark mode and shared components; session 3 reused them and added partials (`form_field`, `status_pill`, `empty_state`) plus `auth_base.html`.
 - Case create and edit share `cases/case_form.html` through template blocks.
 
+- Branch: `ai_main_b2b11d341bbf4f6a9854` was merged to `main` via PR #2 and no longer exists on origin. Work continues on the session branch `ai_main_3f14725f66f24c2082d9`, which matches `main` at session start.
+- Email OTP on every login is NOT built. Login is password, with optional TOTP. Kept as a decision above; left Partial in section 3 and not in the current order of work.
+- Custody QR label is `custody/qr_label.html` (HTML page). `?format=png` or `?format=pdf` returns the image. It includes custodian and intake date, so it stays separate from the evidence-vault label at `evidence:evidence_qr`.
+- Tamper alerts (single verify and bulk task) go to the case's Case Managers (creator or assigned) via `notify_case_managers`, falling back to admins. Email delivery is deferred to step 4.
+- Crawl test fails on placeholder, plain-text or non-template 200 responses. Known placeholders are an explicit allowlist (`KNOWN_PLACEHOLDERS`) that must shrink as views are built.
+- `seed_demo` is idempotent: it exits if the demo manager exists. Re-seed on a fresh database. Demo accounts use password login only, since email OTP is not built.
+
 ## 3. Checklist (live)
 
 Each row is updated as work is completed. Final state must be **Complete** for every row.
@@ -109,21 +116,21 @@ Each row is updated as work is completed. Final state must be **Complete** for e
 | Audit | Hash chain with verify action (exists in code, not yet tested) | Partial |
 | UI | Print styles | Missing |
 | 1 Accounts | Register, approval queue, approve/reject, role change | Partial |
-| 1 Accounts | Login with email OTP (every login), TOTP option, profile, password change | Partial |
+| 1 Accounts | Login with email OTP (every login), TOTP option, profile, password change | Partial (email OTP not built; password login only) |
 | 1 Accounts | Session timeout (15 min, warning modal), lockout, failed-login view | Partial |
 | 2 Cases | List, filter, sort, create, detail tabs, edit, transitions, assign, parties, timeline (full page and AJAX partial) | Partial |
 | 3 Evidence | Upload (drag-drop, progress), versions, preview, download log, verify, bulk verify, metadata, QR | Partial |
-| 4 Custody | Request, accept/reject, timeline, QR label, pending on dashboard | Partial |
+| 4 Custody | Request, accept/reject, timeline, QR label, pending on dashboard | Complete (12 pytest; not clicked in browser) |
 | 5 Hearings | Calendar (FullCalendar page), hearings CRUD, outcome and next date, tasks CRUD (create/update templates), overdue | Partial |
-| 6 Notifications | Scheduling, email/SMS/in-app delivery, retry, escalation, idempotent, bell, notification page | Missing |
+| 6 Notifications | Scheduling, email/SMS/in-app delivery, retry, escalation, idempotent, bell, notification page | Partial (bell count, dropdown, list, mark read and mark all read tested; scheduling, email, retry, escalation missing) |
 | 7 Reports | Dashboard KPIs and charts, PDF exports (5), audit logging | Partial |
 | 8 Audit | Viewer with filters, CSV export, failed logins, integrity history, security settings, insert-only trigger | Partial |
 | 9 Search | Global search API and dropdown | Missing |
 | UI | Design tokens, dark mode, responsive shell, landing, error pages, login/OTP pages | Partial |
 | Security | CSRF, secure cookies, CSP, HSTS, rate limiting, input validation | Partial |
-| Data | `seed_demo` (roles, cases, evidence incl. one tampered file, custody, hearings, tasks) | Missing |
-| Tests | Route-crawl smoke test: every named no-arg URL and one instance of each detail URL, no 500s or missing templates | Complete |
-| Tests | Hashing, versioning, tamper, custody, IDOR, audit immutability, uploads, reminders, status transitions, OTP/lockout | Missing |
+| Data | `seed_demo` (roles, cases, evidence incl. one tampered file, custody, hearings, tasks) | Complete (7 pytest; run on dev DB) |
+| Tests | Route-crawl smoke test: every named no-arg URL and one instance of each detail URL, no 500s, placeholders, plain-text or non-template 200s (audit and reports placeholders allowlisted until built) | Complete |
+| Tests | Hashing, versioning, tamper, custody, IDOR, audit immutability, uploads, reminders, status transitions, OTP/lockout | Partial (custody handshake, notifications, tamper alerts and seed covered; the rest missing) |
 | Deploy | Dockerfile, docker-compose (web, nginx, postgres, redis, celery worker, beat), `.env.example` | Missing |
 | Docs | README (setup, env, Celery, seed, 5-minute demo, structure) | Partial |
 | QA | `manage.py check --deploy`, full test run, responsive check mobile/tablet/desktop | Missing |
@@ -131,13 +138,14 @@ Each row is updated as work is completed. Final state must be **Complete** for e
 ## 4. HOW TO RUN
 - Install: `pip install -r requirements/dev.txt` (a `.venv` already exists in the repo)
 - Migrate: `python manage.py migrate`
-- Seed: not built yet (`seed_demo` is Missing)
+- Seed: `python manage.py seed_demo` (idempotent; prints credentials; re-seed on a fresh DB)
 - Run app: `python manage.py runserver` (settings: `evitrack.settings.development`)
 - Run Celery and Redis: not verified in session 2
 - Run tests: `.venv/bin/python -m pytest` (uses `evitrack.settings.test` from `pytest.ini`)
-- Demo credentials: none yet (seed not built)
+- Demo credentials: `admin@`, `manager@`, `investigator@`, `custodian@`, `reviewer@demo.evitrack.test`, password `Demo#Pass2026`. `pending@demo.evitrack.test` cannot sign in (awaiting approval).
 
 ## 5. SESSION LOG (newest on top)
+- Session 5: custody: evidence detail shows the vertical timeline and a Transfer Custody button; QR label HTML page; `apps/custody/tests` (12 pass). Notifications: unread-count JSON at `/api/notifications/unread-count/` (the bell polled a URL that did not exist); tamper alerts go to case managers via `notify_case_managers`; `apps/notifications/tests` (11 pass); evidence integrity tests (3 pass); strict crawl with placeholder allowlist. `seed_demo` with tests (7 pass), run on the dev DB. Full suite 67 pass; `manage.py check` clean; no migration drift. Not verified: authenticated pages in a browser (the login form could not be automated here; the test client covers the HTTP behaviour). Branch note in section 2.
 - Session 4: added `core/dashboard.html` (role-aware KPIs, Chart.js bar charts from `api/dashboard/charts/`, `static/js/dashboard.js`); added `hearings/calendar.html` (FullCalendar, `static/js/calendar.js`), `task_create`/`task_update` via shared `task_form_base.html`; added case timeline page and partial. Route-crawl smoke test (`apps/core/tests/test_route_smoke.py`) found a `timezone.utc` 500 in the case timeline view (fixed). Tests: core, accounts, cases, evidence pass.
 - Session 3: templates added for accounts (login, OTP verify, password change, profile, OTP setup, user list, approval queue, failed logins), cases (list, detail with tabs, create/edit form, party form and delete) and evidence (list, upload, detail, update, QR label); shared partials and `auth_base.html`. Fixed: `CaseAccessMixin` call sites in cases, evidence and evidence API now use module helpers (some edits had not persisted and were reapplied); evidence detail `item.versions` changed to `newer_versions`; evidence tag filter uses `evidence_items`; `self.check_case_access` calls in cases views replaced. Pytest: 30 pass. Not yet browser-tested; verify flow is fetch-based.
 - Session 2: merged the new RULES, status header, run notes and log into this file; checklist rows updated from verified runs only. Case-access call sites repointed to module helpers; error and landing templates use `core:dashboard` and `core:landing`. Added `apps/cases/tests/test_case_access.py` (4 pass) and `apps/accounts/tests/test_pages.py` (8 pass, 1 fails: `accounts/login.html` missing).
