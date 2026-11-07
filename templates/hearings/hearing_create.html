@@ -1,0 +1,164 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Schedule Hearing - Case {{ case.case_no }} - EviTrack{% endblock %}
+
+{% block breadcrumbs %}
+    <li><a href="{% url 'hearings:hearing_list' %}">Hearings</a></li>
+    <li class="active" aria-current="page">Schedule Hearing</li>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0" style="max-width: 900px;">
+    <!-- Page Header -->
+    <div class="mb-4">
+        <h1 class="h3 fw-bold text-ev-navy mb-1">Schedule Court Hearing</h1>
+        <p class="text-muted small mb-0">
+            Set up an upcoming court session, trial date, or motion hearing.
+            Automated compliance reminders will be dispatched to all investigators and attorneys assigned to this case.
+        </p>
+    </div>
+
+    <!-- Case Information Card -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-card py-3 d-flex align-items-center justify-content-between">
+            <div class="d-flex align-items-center gap-2">
+                <i class="bi bi-briefcase text-ev-navy fs-5"></i>
+                <h5 class="card-title mb-0 fw-bold">Case Information</h5>
+            </div>
+            <span class="badge-ev badge-active font-sm">{{ case.get_status_display }}</span>
+        </div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <div class="text-muted small">Case Number:</div>
+                    <div class="fw-bold font-mono text-ev-navy fs-6">{{ case.case_no }}</div>
+                </div>
+                <div class="col-md-8">
+                    <div class="text-muted small">Case Title:</div>
+                    <div class="fw-semibold text-dark">{{ case.title }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hearing Schedule Form -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-card py-3">
+            <h5 class="card-title mb-0 fw-bold">Hearing Details &amp; Proceedings</h5>
+        </div>
+        <div class="card-body p-4">
+            <form method="post" novalidate>
+                {% csrf_token %}
+                {{ form.case }}
+
+                {% if form.non_field_errors %}
+                    <div class="alert alert-danger" role="alert">
+                        {% for err in form.non_field_errors %}
+                            <div><i class="bi bi-exclamation-octagon me-1"></i> {{ err }}</div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                <div class="row g-3">
+                    <!-- Hearing Date and Court -->
+                    <div class="col-md-6">
+                        <label for="{{ form.hearing_date.id_for_label }}" class="form-label fw-bold">
+                            Hearing Date &amp; Time <span class="text-danger">*</span>
+                        </label>
+                        {{ form.hearing_date }}
+                        {% if form.hearing_date.errors %}
+                            <div class="text-danger small mt-1">
+                                {% for error in form.hearing_date.errors %}{{ error }}{% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="col-md-6">
+                        <label for="{{ form.court.id_for_label }}" class="form-label fw-bold">
+                            Court / Room <span class="text-danger">*</span>
+                        </label>
+                        {{ form.court }}
+                        {% if form.court.errors %}
+                            <div class="text-danger small mt-1">
+                                {% for error in form.court.errors %}{{ error }}{% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Purpose / Motion -->
+                    <div class="col-12">
+                        <label for="{{ form.purpose.id_for_label }}" class="form-label fw-bold">
+                            Purpose / Motion / Proceeding Type <span class="text-danger">*</span>
+                        </label>
+                        {{ form.purpose }}
+                        {% if form.purpose.errors %}
+                            <div class="text-danger small mt-1">
+                                {% for error in form.purpose.errors %}{{ error }}{% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Outcome (Optional at intake) -->
+                    <div class="col-12">
+                        <label for="{{ form.outcome.id_for_label }}" class="form-label fw-bold">
+                            Outcome / Judicial Orders (Optional)
+                        </label>
+                        {{ form.outcome }}
+                        {% if form.outcome.errors %}
+                            <div class="text-danger small mt-1">
+                                {% for error in form.outcome.errors %}{{ error }}{% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Next Hearing Date -->
+                    <div class="col-md-6">
+                        <label for="{{ form.next_hearing_date.id_for_label }}" class="form-label fw-bold">
+                            Subsequent Hearing Date (Optional)
+                        </label>
+                        {{ form.next_hearing_date }}
+                        {% if form.next_hearing_date.errors %}
+                            <div class="text-danger small mt-1">
+                                {% for error in form.next_hearing_date.errors %}{{ error }}{% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Internal Notes -->
+                    <div class="col-12">
+                        <label for="{{ form.notes.id_for_label }}" class="form-label fw-bold">
+                            Internal Case &amp; Evidence Notes
+                        </label>
+                        {{ form.notes }}
+                        {% if form.notes.errors %}
+                            <div class="text-danger small mt-1">
+                                {% for error in form.notes.errors %}{{ error }}{% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Reminder Info Alert -->
+                <div class="alert alert-info d-flex align-items-center gap-2 mt-4" role="alert">
+                    <i class="bi bi-bell-fill fs-5 flex-shrink-0"></i>
+                    <div class="small">
+                        <strong>Automated Reminders:</strong>
+                        System reminders will automatically be queued for all assigned personnel at 7 days, 1 day, and 2 hours prior to this court session.
+                    </div>
+                </div>
+
+                <!-- Action buttons -->
+                <div class="d-flex align-items-center justify-content-between pt-3">
+                    <a href="{% url 'hearings:hearing_list' %}" class="btn btn-ev-outline">
+                        <i class="bi bi-x-lg me-1"></i> Cancel
+                    </a>
+                    <button type="submit" class="btn btn-ev-primary px-4 py-2">
+                        <i class="bi bi-calendar-check me-1"></i> Schedule Hearing
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

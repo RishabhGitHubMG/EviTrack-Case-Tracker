@@ -1,0 +1,145 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Request Custody Transfer - {{ evidence.evidence_no }} - EviTrack{% endblock %}
+
+{% block breadcrumbs %}
+    <li><a href="{% url 'custody:custody_list' %}">Custody</a></li>
+    <li class="active" aria-current="page">Transfer Request</li>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0" style="max-width: 900px;">
+    <!-- Page Header -->
+    <div class="mb-4">
+        <h1 class="h3 fw-bold text-ev-navy mb-1">Initiate Custody Transfer</h1>
+        <p class="text-muted small mb-0">
+            Formally reassign custodial responsibility for this piece of digital evidence.
+            All transfer requests are immutably signed into the audit log.
+        </p>
+    </div>
+
+    <!-- Evidence Information Card -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-card py-3 d-flex align-items-center justify-content-between">
+            <div class="d-flex align-items-center gap-2">
+                <i class="bi bi-shield-check text-ev-navy fs-5"></i>
+                <h5 class="card-title mb-0 fw-bold">Evidence Item Details</h5>
+            </div>
+            <span class="badge-ev badge-verified font-sm">SHA-256 Intact</span>
+        </div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <div class="text-muted small">Evidence Tracking Number:</div>
+                    <div class="fw-bold font-mono text-ev-navy fs-6">{{ evidence.evidence_no }}</div>
+                </div>
+                <div class="col-md-6">
+                    <div class="text-muted small">Associated Case:</div>
+                    <div class="fw-semibold">
+                        <a href="{% url 'cases:case_detail' case.pk %}" class="text-decoration-none text-ev-navy">
+                            {{ case.case_no }} - {{ case.title }}
+                        </a>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="text-muted small">Item Title:</div>
+                    <div class="fw-medium text-dark">{{ evidence.title }}</div>
+                </div>
+                <div class="col-md-6">
+                    <div class="text-muted small">Current Custodian:</div>
+                    <div>
+                        {% if evidence.current_holder %}
+                            <strong>{{ evidence.current_holder.get_full_name|default:evidence.current_holder.email }}</strong>
+                            <span class="badge-role badge-role-{{ evidence.current_holder.role|lower }} ms-1">
+                                {{ evidence.current_holder.get_role_display }}
+                            </span>
+                        {% else %}
+                            <span class="text-muted fst-italic">Vault Intake (Unassigned)</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="col-12">
+                    <div class="text-muted small">SHA-256 Checksum:</div>
+                    <div class="p-2 rounded bg-surface border font-mono small text-break text-muted">
+                        {{ evidence.sha256 }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Transfer Request Form Card -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-card py-3">
+            <h5 class="card-title mb-0 fw-bold">Custody Transfer Protocol</h5>
+        </div>
+        <div class="card-body p-4">
+            <form method="post" novalidate>
+                {% csrf_token %}
+
+                {% if form.non_field_errors %}
+                    <div class="alert alert-danger" role="alert">
+                        {% for err in form.non_field_errors %}
+                            <div><i class="bi bi-exclamation-octagon me-1"></i> {{ err }}</div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                <!-- Recipient field -->
+                <div class="mb-4">
+                    <label for="{{ form.to_user.id_for_label }}" class="form-label fw-bold">
+                        Transfer Custody To <span class="text-danger">*</span>
+                    </label>
+                    {{ form.to_user }}
+                    {% if form.to_user.help_text %}
+                        <div class="form-text text-muted">{{ form.to_user.help_text }}</div>
+                    {% endif %}
+                    {% if form.to_user.errors %}
+                        <div class="text-danger small mt-1">
+                            {% for error in form.to_user.errors %}{{ error }}{% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Reason field -->
+                <div class="mb-4">
+                    <label for="{{ form.reason.id_for_label }}" class="form-label fw-bold">
+                        Justification / Purpose of Transfer <span class="text-danger">*</span>
+                    </label>
+                    {{ form.reason }}
+                    {% if form.reason.help_text %}
+                        <div class="form-text text-muted">{{ form.reason.help_text }}</div>
+                    {% endif %}
+                    {% if form.reason.errors %}
+                        <div class="text-danger small mt-1">
+                            {% for error in form.reason.errors %}{{ error }}{% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Security warning banner -->
+                <div class="alert alert-warning d-flex align-items-start gap-2 mb-4" role="alert">
+                    <i class="bi bi-shield-exclamation fs-5 flex-shrink-0 mt-1"></i>
+                    <div class="small">
+                        <strong>Chain of Custody Notice:</strong>
+                        Transferring custody delegates direct legal accountability for the integrity,
+                        storage, and handling of this item. The recipient will be notified and must
+                        formally accept before custody is handed off.
+                    </div>
+                </div>
+
+                <!-- Action buttons -->
+                <div class="d-flex align-items-center justify-content-between pt-2">
+                    <a href="{% url 'custody:custody_list' %}" class="btn btn-ev-outline">
+                        <i class="bi bi-x-lg me-1"></i> Cancel
+                    </a>
+                    <button type="submit" class="btn btn-ev-primary px-4 py-2">
+                        <i class="bi bi-send-check me-1"></i> Submit Transfer Request
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

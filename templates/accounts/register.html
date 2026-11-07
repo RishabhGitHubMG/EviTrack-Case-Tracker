@@ -1,0 +1,222 @@
+{% extends "base_minimal.html" %}
+{% load static %}
+
+{% block title %}Register - EviTrack Evidence Vault{% endblock %}
+
+{% block content %}
+<div class="auth-layout" style="min-height: calc(100vh - 120px); margin: -1.5rem -0.75rem;">
+    <div class="auth-card" style="max-width: 520px;">
+        <div class="auth-brand">
+            <div class="auth-logo-badge">
+                <i class="bi bi-shield-check"></i>
+            </div>
+            <h1 class="auth-title">Create Official Account</h1>
+            <p class="auth-subtitle">EviTrack Forensic Evidence &amp; Chain of Custody</p>
+        </div>
+
+        {% if form.errors and not form.non_field_errors %}
+            <div class="alert alert-danger py-2 px-3 mb-3 font-sm" role="alert">
+                <i class="bi bi-exclamation-octagon-fill me-1"></i>
+                Please correct the highlighted issues below.
+            </div>
+        {% endif %}
+
+        {% if form.non_field_errors %}
+            <div class="alert alert-danger py-2 px-3 mb-3 font-sm" role="alert">
+                {% for err in form.non_field_errors %}
+                    <div><i class="bi bi-exclamation-octagon-fill me-1"></i> {{ err }}</div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <form method="post" action="{% url 'accounts:register' %}" novalidate id="registerForm">
+            {% csrf_token %}
+
+            <div class="row g-2 mb-3">
+                <div class="col-sm-6">
+                    <label for="{{ form.first_name.id_for_label }}" class="form-label font-sm fw-medium">First Name <span class="text-danger">*</span></label>
+                    {{ form.first_name }}
+                    {% if form.first_name.errors %}
+                        <div class="text-danger small mt-1">{{ form.first_name.errors.0 }}</div>
+                    {% endif %}
+                </div>
+                <div class="col-sm-6">
+                    <label for="{{ form.last_name.id_for_label }}" class="form-label font-sm fw-medium">Last Name <span class="text-danger">*</span></label>
+                    {{ form.last_name }}
+                    {% if form.last_name.errors %}
+                        <div class="text-danger small mt-1">{{ form.last_name.errors.0 }}</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label for="{{ form.email.id_for_label }}" class="form-label font-sm fw-medium">Official Agency Email <span class="text-danger">*</span></label>
+                <div class="input-group">
+                    <span class="input-group-text bg-surface"><i class="bi bi-envelope"></i></span>
+                    {{ form.email }}
+                </div>
+                {% if form.email.errors %}
+                    <div class="text-danger small mt-1">{{ form.email.errors.0 }}</div>
+                {% endif %}
+            </div>
+
+            <div class="mb-3">
+                <label for="{{ form.phone.id_for_label }}" class="form-label font-sm fw-medium">Official Phone Number</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-surface"><i class="bi bi-telephone"></i></span>
+                    {{ form.phone }}
+                </div>
+                {% if form.phone.errors %}
+                    <div class="text-danger small mt-1">{{ form.phone.errors.0 }}</div>
+                {% endif %}
+            </div>
+
+            <div class="mb-3">
+                <label for="{{ form.role.id_for_label }}" class="form-label font-sm fw-medium">Operational Role <span class="text-danger">*</span></label>
+                {{ form.role }}
+                <div class="form-text small">{{ form.role.help_text }}</div>
+                {% if form.role.errors %}
+                    <div class="text-danger small mt-1">{{ form.role.errors.0 }}</div>
+                {% endif %}
+            </div>
+
+            <div class="mb-3">
+                <label for="id_password1" class="form-label font-sm fw-medium">Password <span class="text-danger">*</span></label>
+                <div class="input-group">
+                    <span class="input-group-text bg-surface"><i class="bi bi-key"></i></span>
+                    {{ form.password1 }}
+                    <button class="btn btn-outline-secondary" type="button" id="togglePassword1Btn" aria-label="Toggle password visibility">
+                        <i class="bi bi-eye" id="togglePassword1Icon"></i>
+                    </button>
+                </div>
+                {% if form.password1.errors %}
+                    <div class="text-danger small mt-1">{{ form.password1.errors.0 }}</div>
+                {% endif %}
+
+                <!-- Live Password Strength Meter -->
+                <div class="mt-2" id="strengthMeterWrapper">
+                    <div class="progress" style="height: 6px;">
+                        <div class="progress-bar bg-danger" id="strengthBar" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mt-1">
+                        <span class="small text-muted" id="strengthText">Enter password</span>
+                    </div>
+
+                    <ul class="list-unstyled small mt-2 mb-0 text-muted" id="passwordChecklist">
+                        <li id="rule-length"><i class="bi bi-dash-circle me-1"></i> At least 8 characters</li>
+                        <li id="rule-cases"><i class="bi bi-dash-circle me-1"></i> Uppercase and lowercase letters</li>
+                        <li id="rule-number"><i class="bi bi-dash-circle me-1"></i> At least one number (0-9)</li>
+                        <li id="rule-special"><i class="bi bi-dash-circle me-1"></i> At least one special symbol (!@#$%^&*)</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <label for="id_password2" class="form-label font-sm fw-medium">Confirm Password <span class="text-danger">*</span></label>
+                <div class="input-group">
+                    <span class="input-group-text bg-surface"><i class="bi bi-shield-lock"></i></span>
+                    {{ form.password2 }}
+                </div>
+                {% if form.password2.errors %}
+                    <div class="text-danger small mt-1">{{ form.password2.errors.0 }}</div>
+                {% endif %}
+            </div>
+
+            <div class="alert alert-info py-2 px-3 mb-3 d-flex align-items-start gap-2 font-sm">
+                <i class="bi bi-info-circle-fill text-info mt-1"></i>
+                <div>
+                    <strong>Administrative Approval Notice:</strong> Newly registered accounts remain inactive until vetted by a system administrator.
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-ev-primary w-100 py-2 fw-semibold">
+                <i class="bi bi-person-plus-fill me-1"></i> Submit Registration
+            </button>
+        </form>
+
+        <div class="text-center mt-4 pt-3 border-top font-sm">
+            <span class="text-muted">Already have authorized credentials?</span>
+            <a href="{% url 'accounts:login' %}" class="fw-semibold text-decoration-none ms-1 text-amber">
+                Sign In
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const p1Input = document.getElementById('id_password1');
+    const p1Toggle = document.getElementById('togglePassword1Btn');
+    const p1Icon = document.getElementById('togglePassword1Icon');
+    const bar = document.getElementById('strengthBar');
+    const text = document.getElementById('strengthText');
+
+    const ruleLength = document.getElementById('rule-length');
+    const ruleCases = document.getElementById('rule-cases');
+    const ruleNumber = document.getElementById('rule-number');
+    const ruleSpecial = document.getElementById('rule-special');
+
+    if (p1Toggle && p1Input) {
+        p1Toggle.addEventListener('click', function () {
+            const isPassword = p1Input.type === 'password';
+            p1Input.type = isPassword ? 'text' : 'password';
+            p1Icon.className = isPassword ? 'bi bi-eye-slash' : 'bi bi-eye';
+        });
+    }
+
+    if (p1Input) {
+        p1Input.addEventListener('input', function () {
+            const val = p1Input.value;
+            let score = 0;
+
+            const hasLength = val.length >= 8;
+            const hasCases = /[A-Z]/.test(val) && /[a-z]/.test(val);
+            const hasNumber = /[0-9]/.test(val);
+            const hasSpecial = /[^A-Za-z0-9]/.test(val);
+
+            updateRule(ruleLength, hasLength);
+            updateRule(ruleCases, hasCases);
+            updateRule(ruleNumber, hasNumber);
+            updateRule(ruleSpecial, hasSpecial);
+
+            if (hasLength) score += 25;
+            if (hasCases) score += 25;
+            if (hasNumber) score += 25;
+            if (hasSpecial) score += 25;
+
+            bar.style.width = score + '%';
+            if (score <= 25) {
+                bar.className = 'progress-bar bg-danger';
+                text.textContent = 'Weak';
+                text.className = 'small text-danger fw-semibold';
+            } else if (score <= 50) {
+                bar.className = 'progress-bar bg-warning';
+                text.textContent = 'Moderate';
+                text.className = 'small text-warning fw-semibold';
+            } else if (score <= 75) {
+                bar.className = 'progress-bar bg-info';
+                text.textContent = 'Good';
+                text.className = 'small text-info fw-semibold';
+            } else {
+                bar.className = 'progress-bar bg-success';
+                text.textContent = 'Strong';
+                text.className = 'small text-success fw-semibold';
+            }
+        });
+    }
+
+    function updateRule(element, passed) {
+        if (!element) return;
+        if (passed) {
+            element.className = 'text-success fw-medium';
+            element.innerHTML = '<i class="bi bi-check-circle-fill me-1"></i> ' + element.textContent.trim();
+        } else {
+            element.className = 'text-muted';
+            element.innerHTML = '<i class="bi bi-dash-circle me-1"></i> ' + element.textContent.trim();
+        }
+    }
+});
+</script>
+{% endblock %}

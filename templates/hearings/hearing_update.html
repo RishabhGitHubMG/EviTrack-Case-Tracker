@@ -1,0 +1,135 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Edit Hearing - Case {{ case.case_no }} - EviTrack{% endblock %}
+
+{% block breadcrumbs %}
+    <li><a href="{% url 'hearings:hearing_list' %}">Hearings</a></li>
+    <li><a href="{% url 'hearings:hearing_detail' hearing.pk %}">Details</a></li>
+    <li class="active" aria-current="page">Edit Hearing</li>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0" style="max-width: 900px;">
+    <!-- Page Header -->
+    <div class="mb-4">
+        <h1 class="h3 fw-bold text-ev-navy mb-1">Update Court Hearing</h1>
+        <p class="text-muted small mb-0">
+            Modify court session details, reschedule dates, or update judicial notes.
+        </p>
+    </div>
+
+    <!-- Rescheduling Warning Notice -->
+    <div class="alert alert-warning d-flex align-items-center gap-2 mb-4" role="alert">
+        <i class="bi bi-exclamation-triangle-fill fs-5 flex-shrink-0"></i>
+        <div class="small">
+            <strong>Rescheduling Notice:</strong>
+            Altering the hearing date or time will automatically cancel previously queued reminders and reschedule new alerts (7 days, 1 day, and 2 hours prior) for all assigned personnel.
+        </div>
+    </div>
+
+    <!-- Hearing Edit Form Card -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-card py-3">
+            <h5 class="card-title mb-0 fw-bold">Hearing Specifications</h5>
+        </div>
+        <div class="card-body p-4">
+            <form method="post" novalidate>
+                {% csrf_token %}
+                {{ form.case }}
+
+                {% if form.non_field_errors %}
+                    <div class="alert alert-danger" role="alert">
+                        {% for err in form.non_field_errors %}
+                            <div><i class="bi bi-exclamation-octagon me-1"></i> {{ err }}</div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label for="{{ form.hearing_date.id_for_label }}" class="form-label fw-bold">
+                            Hearing Date &amp; Time <span class="text-danger">*</span>
+                        </label>
+                        {{ form.hearing_date }}
+                        {% if form.hearing_date.errors %}
+                            <div class="text-danger small mt-1">
+                                {% for error in form.hearing_date.errors %}{{ error }}{% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="col-md-6">
+                        <label for="{{ form.court.id_for_label }}" class="form-label fw-bold">
+                            Court / Room <span class="text-danger">*</span>
+                        </label>
+                        {{ form.court }}
+                        {% if form.court.errors %}
+                            <div class="text-danger small mt-1">
+                                {% for error in form.court.errors %}{{ error }}{% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="col-12">
+                        <label for="{{ form.purpose.id_for_label }}" class="form-label fw-bold">
+                            Purpose / Motion / Proceeding Type <span class="text-danger">*</span>
+                        </label>
+                        {{ form.purpose }}
+                        {% if form.purpose.errors %}
+                            <div class="text-danger small mt-1">
+                                {% for error in form.purpose.errors %}{{ error }}{% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="col-12">
+                        <label for="{{ form.outcome.id_for_label }}" class="form-label fw-bold">
+                            Outcome / Judicial Orders
+                        </label>
+                        {{ form.outcome }}
+                        {% if form.outcome.errors %}
+                            <div class="text-danger small mt-1">
+                                {% for error in form.outcome.errors %}{{ error }}{% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="col-md-6">
+                        <label for="{{ form.next_hearing_date.id_for_label }}" class="form-label fw-bold">
+                            Subsequent Hearing Date
+                        </label>
+                        {{ form.next_hearing_date }}
+                        {% if form.next_hearing_date.errors %}
+                            <div class="text-danger small mt-1">
+                                {% for error in form.next_hearing_date.errors %}{{ error }}{% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="col-12">
+                        <label for="{{ form.notes.id_for_label }}" class="form-label fw-bold">
+                            Internal Case &amp; Evidence Notes
+                        </label>
+                        {{ form.notes }}
+                        {% if form.notes.errors %}
+                            <div class="text-danger small mt-1">
+                                {% for error in form.notes.errors %}{{ error }}{% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="d-flex align-items-center justify-content-between pt-4">
+                    <a href="{% url 'hearings:hearing_detail' hearing.pk %}" class="btn btn-ev-outline">
+                        <i class="bi bi-x-lg me-1"></i> Cancel
+                    </a>
+                    <button type="submit" class="btn btn-ev-primary px-4 py-2">
+                        <i class="bi bi-save me-1"></i> Save Changes
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

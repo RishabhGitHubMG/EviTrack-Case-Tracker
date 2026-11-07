@@ -1,0 +1,216 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Hearing: {{ hearing.case.case_no }} - {{ hearing.purpose }} - EviTrack{% endblock %}
+
+{% block breadcrumbs %}
+    <li><a href="{% url 'hearings:hearing_list' %}">Hearings</a></li>
+    <li class="active" aria-current="page">Hearing Details</li>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0">
+    <!-- Header Page Actions -->
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+        <div>
+            <div class="d-flex align-items-center gap-2 mb-1">
+                <h1 class="h3 fw-bold mb-0 text-ev-navy">{{ hearing.purpose }}</h1>
+                <span class="badge-ev badge-active font-sm">
+                    {{ hearing.hearing_date|date:"M d, Y" }}
+                </span>
+            </div>
+            <p class="text-muted small mb-0">
+                Court session for Case
+                <a href="{% url 'cases:case_detail' case.pk %}" class="fw-semibold text-ev-navy text-decoration-none">
+                    {{ case.case_no }} - {{ case.title }}
+                </a>
+            </p>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+            <button type="button" class="btn btn-ev-outline" data-bs-toggle="modal" data-bs-target="#outcomeModal">
+                <i class="bi bi-journal-check me-1"></i> Record Outcome
+            </button>
+            {% if not request.user.is_reviewer %}
+                <a href="{% url 'hearings:hearing_update' hearing.pk %}" class="btn btn-ev-primary">
+                    <i class="bi bi-pencil-square me-1"></i> Edit Hearing
+                </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Main Column: Hearing Proceedings & Outcome -->
+        <div class="col-12 col-lg-8">
+            <!-- Proceedings Details Card -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-card py-3 d-flex align-items-center justify-content-between">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="bi bi-bank text-ev-navy fs-5"></i>
+                        <h5 class="card-title mb-0 fw-bold">Hearing Specifications</h5>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="text-muted small">Court &amp; Jurisdiction:</div>
+                            <div class="fw-bold fs-6 text-ev-navy">{{ hearing.court }}</div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="text-muted small">Date &amp; Time:</div>
+                            <div class="fw-semibold text-dark">
+                                <i class="bi bi-calendar3 me-1 text-ev-navy"></i>
+                                {{ hearing.hearing_date|date:"l, F d, Y" }} at {{ hearing.hearing_date|date:"H:i" }}
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="text-muted small">Purpose / Motion:</div>
+                            <div class="fw-medium text-dark">{{ hearing.purpose }}</div>
+                        </div>
+                        {% if hearing.notes %}
+                            <div class="col-12">
+                                <div class="text-muted small">Internal Case Notes:</div>
+                                <div class="p-3 bg-surface rounded border small text-dark mt-1">
+                                    {{ hearing.notes|linebreaks }}
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Court Outcome & Judicial Rulings Card -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-card py-3 d-flex align-items-center justify-content-between">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="bi bi-gavel text-ev-navy fs-5"></i>
+                        <h5 class="card-title mb-0 fw-bold">Official Outcome &amp; Judicial Directives</h5>
+                    </div>
+                    {% if hearing.outcome %}
+                        <span class="badge-ev badge-verified font-sm">Outcome Logged</span>
+                    {% else %}
+                        <span class="badge-ev badge-pending font-sm">Pending Outcome</span>
+                    {% endif %}
+                </div>
+                <div class="card-body">
+                    {% if hearing.outcome %}
+                        <div class="p-3 bg-surface rounded border small text-dark mb-3">
+                            {{ hearing.outcome|linebreaks }}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4 text-muted">
+                            <i class="bi bi-journal-text fs-3 d-block mb-2 text-secondary"></i>
+                            <p class="small mb-2">No outcome has been recorded for this hearing yet.</p>
+                            <button type="button" class="btn btn-sm btn-ev-outline" data-bs-toggle="modal" data-bs-target="#outcomeModal">
+                                <i class="bi bi-plus-lg me-1"></i> Record Outcome Now
+                            </button>
+                        </div>
+                    {% endif %}
+
+                    {% if hearing.next_hearing_date %}
+                        <div class="alert alert-info d-flex align-items-center justify-content-between p-3 mt-3 mb-0" role="alert">
+                            <div class="d-flex align-items-center gap-2">
+                                <i class="bi bi-calendar2-plus fs-5 flex-shrink-0"></i>
+                                <div>
+                                    <div class="fw-bold">Subsequent Court Date Set</div>
+                                    <div class="small">{{ hearing.next_hearing_date|date:"l, F d, Y \a\\t H:i" }}</div>
+                                </div>
+                            </div>
+                            <a href="{% url 'hearings:hearing_create' case.pk %}" class="btn btn-sm btn-ev-primary">
+                                Create New Session
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar Column: Case & Personnel Metadata -->
+        <div class="col-12 col-lg-4">
+            <!-- Case Summary Card -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-card py-3">
+                    <h6 class="card-title mb-0 fw-bold">Case Overview</h6>
+                </div>
+                <div class="card-body small">
+                    <div class="mb-2">
+                        <span class="text-muted">Case Number:</span>
+                        <div class="fw-bold font-mono text-ev-navy">{{ case.case_no }}</div>
+                    </div>
+                    <div class="mb-2">
+                        <span class="text-muted">Status:</span>
+                        <div><span class="badge-ev badge-active">{{ case.get_status_display }}</span></div>
+                    </div>
+                    <div class="mb-3">
+                        <span class="text-muted">Incident Type:</span>
+                        <div class="fw-semibold">{{ case.incident_type }}</div>
+                    </div>
+                    <a href="{% url 'cases:case_detail' case.pk %}" class="btn btn-sm btn-ev-outline w-100">
+                        <i class="bi bi-arrow-up-right-square me-1"></i> View Full Case File
+                    </a>
+                </div>
+            </div>
+
+            <!-- Audit Trail & Record Metadata -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-card py-3">
+                    <h6 class="card-title mb-0 fw-bold">Scheduling Record</h6>
+                </div>
+                <div class="card-body small">
+                    <div class="mb-2">
+                        <span class="text-muted">Scheduled By:</span>
+                        <div class="fw-semibold">
+                            {{ hearing.created_by.get_full_name|default:hearing.created_by.email }}
+                            <span class="badge-role badge-role-{{ hearing.created_by.role|lower }} font-xs ms-1">
+                                {{ hearing.created_by.get_role_display }}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="mb-2">
+                        <span class="text-muted">Reminders Status:</span>
+                        <div class="text-success fw-medium">
+                            <i class="bi bi-check-circle-fill me-1"></i> Automated Compliance Queue Active
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Record Hearing Outcome -->
+<div class="modal fade" id="outcomeModal" tabindex="-1" aria-labelledby="outcomeModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <form method="post" action="{% url 'hearings:hearing_outcome' hearing.pk %}">
+                {% csrf_token %}
+                <div class="modal-header">
+                    <h5 class="modal-title" id="outcomeModalLabel">
+                        <i class="bi bi-journal-check text-ev-navy me-2"></i> Record Hearing Outcome
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="{{ outcome_form.outcome.id_for_label }}" class="form-label fw-bold">
+                            Official Court Outcome / Rulings <span class="text-danger">*</span>
+                        </label>
+                        {{ outcome_form.outcome }}
+                    </div>
+                    <div class="mb-3">
+                        <label for="{{ outcome_form.next_hearing_date.id_for_label }}" class="form-label fw-bold">
+                            Subsequent Hearing Date &amp; Time (If ordered by Judge)
+                        </label>
+                        {{ outcome_form.next_hearing_date }}
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-ev-outline" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-ev-primary px-4">
+                        <i class="bi bi-save me-1"></i> Save Outcome
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

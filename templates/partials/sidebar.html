@@ -1,0 +1,141 @@
+{% load static %}
+<aside class="app-sidebar" id="appSidebar">
+    <!-- Brand Header -->
+    <a href="{% url 'cases:dashboard' %}" class="sidebar-brand">
+        <div class="sidebar-logo-icon">
+            <i class="bi bi-shield-lock-fill"></i>
+        </div>
+        <div class="sidebar-brand-text">
+            <span class="brand-title">Evi<span>Track</span></span>
+            <span class="brand-subtitle">Digital Forensics</span>
+        </div>
+    </a>
+
+    <!-- Navigation Menu -->
+    <ul class="sidebar-menu">
+        <li class="sidebar-heading">Operations</li>
+
+        <!-- Dashboard -->
+        <li class="sidebar-item">
+            <a href="{% url 'cases:dashboard' %}" class="sidebar-link {% if request.resolver_match.url_name == 'dashboard' or request.path == '/' or request.path == '/dashboard/' %}active{% endif %}">
+                <i class="bi bi-speedometer2"></i>
+                <span>Dashboard</span>
+            </a>
+        </li>
+
+        <!-- Cases -->
+        <li class="sidebar-item">
+            <a href="{% url 'cases:case_list' %}" class="sidebar-link {% if request.resolver_match.app_name == 'cases' and request.resolver_match.url_name != 'dashboard' or '/cases/' in request.path %}active{% endif %}">
+                <i class="bi bi-folder2-open"></i>
+                <span>Cases</span>
+            </a>
+        </li>
+
+        <!-- Evidence Vault -->
+        <li class="sidebar-item">
+            <a href="{% url 'evidence:evidence_list' %}" class="sidebar-link {% if request.resolver_match.app_name == 'evidence' or '/evidence/' in request.path %}active{% endif %}">
+                <i class="bi bi-shield-lock"></i>
+                <span>Evidence Vault</span>
+            </a>
+        </li>
+
+        <!-- Chain of Custody -->
+        <li class="sidebar-item">
+            <a href="{% url 'custody:custody_list' %}" class="sidebar-link {% if request.resolver_match.app_name == 'custody' or '/custody/' in request.path %}active{% endif %}">
+                <i class="bi bi-arrow-left-right"></i>
+                <span>Custody</span>
+            </a>
+        </li>
+
+        <!-- Court Hearings -->
+        <li class="sidebar-item">
+            <a href="{% url 'hearings:hearing_list' %}" class="sidebar-link {% if request.resolver_match.app_name == 'hearings' or '/hearings/' in request.path %}active{% endif %}">
+                <i class="bi bi-calendar-event"></i>
+                <span>Hearings</span>
+            </a>
+        </li>
+
+        <!-- Tasks -->
+        <li class="sidebar-item">
+            <a href="{% url 'cases:task_list' %}" class="sidebar-link {% if request.resolver_match.url_name == 'task_list' or '/tasks/' in request.path %}active{% endif %}">
+                <i class="bi bi-list-task"></i>
+                <span>Tasks</span>
+            </a>
+        </li>
+
+        <!-- Reports -->
+        <li class="sidebar-item">
+            <a href="{% url 'reports:report_list' %}" class="sidebar-link {% if request.resolver_match.app_name == 'reports' or '/reports/' in request.path %}active{% endif %}">
+                <i class="bi bi-file-earmark-bar-graph"></i>
+                <span>Reports</span>
+            </a>
+        </li>
+
+        <!-- Notifications -->
+        <li class="sidebar-item">
+            <a href="{% url 'notifications:notification_list' %}" class="sidebar-link {% if request.resolver_match.app_name == 'notifications' or '/notifications/' in request.path %}active{% endif %}">
+                <i class="bi bi-bell"></i>
+                <span>Notifications</span>
+                {% if unread_notification_count and unread_notification_count > 0 %}
+                    <span class="sidebar-badge">{{ unread_notification_count }}</span>
+                {% endif %}
+            </a>
+        </li>
+
+        <!-- Admin Management Section -->
+        {% if user.is_superuser or user.is_staff or user.role == 'Admin' or user.is_admin %}
+            <li class="sidebar-divider"></li>
+            <li class="sidebar-heading">System Administration</li>
+
+            <li class="sidebar-item">
+                <a href="{% url 'accounts:user_list' %}" class="sidebar-link {% if request.resolver_match.app_name == 'accounts' and 'user' in request.resolver_match.url_name or '/users/' in request.path %}active{% endif %}">
+                    <i class="bi bi-people"></i>
+                    <span>User Management</span>
+                </a>
+            </li>
+
+            <li class="sidebar-item">
+                <a href="{% url 'audit:audit_log_list' %}" class="sidebar-link {% if request.resolver_match.app_name == 'audit' or '/audit/' in request.path %}active{% endif %}">
+                    <i class="bi bi-journal-text"></i>
+                    <span>Audit Log</span>
+                </a>
+            </li>
+
+            <li class="sidebar-item">
+                <a href="{% url 'accounts:security_settings' %}" class="sidebar-link {% if 'security' in request.path %}active{% endif %}">
+                    <i class="bi bi-shield-check"></i>
+                    <span>Security &amp; Policy</span>
+                </a>
+            </li>
+        {% endif %}
+    </ul>
+
+    <!-- Sidebar Bottom / User & Collapse -->
+    <div class="sidebar-footer">
+        <a href="{% url 'accounts:profile' %}" class="sidebar-user" title="View Profile">
+            <div class="sidebar-user-avatar">
+                {% if user.first_name and user.last_name %}
+                    {{ user.first_name|slice:":1"|upper }}{{ user.last_name|slice:":1"|upper }}
+                {% elif user.username %}
+                    {{ user.username|slice:":2"|upper }}
+                {% else %}
+                    ET
+                {% endif %}
+            </div>
+            <div class="sidebar-user-details">
+                <span class="sidebar-user-name">{{ user.get_full_name|default:user.username }}</span>
+                <span class="sidebar-user-role">
+                    <span class="badge-role badge-role-{{ user.role|lower|default:'investigator' }}">
+                        {{ user.role|default:"Investigator" }}
+                    </span>
+                </span>
+            </div>
+        </a>
+
+        <!-- Desktop Collapse Button -->
+        <button type="button" class="sidebar-collapse-btn" id="sidebarCollapseBtn" aria-label="Toggle Sidebar Navigation">
+            <i class="bi bi-chevron-double-left"></i>
+            <span class="ms-2">Collapse Menu</span>
+        </button>
+    </div>
+</aside>

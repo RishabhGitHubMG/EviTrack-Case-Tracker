@@ -1,0 +1,100 @@
+{% load static %}
+<div class="custody-timeline-container">
+    {% if timeline %}
+        <div class="timeline-v">
+            {% for item in timeline %}
+                <div class="timeline-item">
+                    <!-- Marker Circle with Status Indicator -->
+                    <div class="timeline-marker {% if item.status == 'accepted' %}success{% elif item.status == 'rejected' %}danger{% else %}amber{% endif %}">
+                        {% if item.status == 'accepted' %}
+                            <i class="bi bi-check-lg"></i>
+                        {% elif item.status == 'rejected' %}
+                            <i class="bi bi-x-lg"></i>
+                        {% else %}
+                            <i class="bi bi-arrow-repeat"></i>
+                        {% endif %}
+                    </div>
+
+                    <!-- Timeline Content Card -->
+                    <div class="timeline-content">
+                        <div class="timeline-header">
+                            <h6 class="timeline-title d-flex align-items-center gap-2">
+                                <span>Custody Transfer</span>
+                                {% if item.status == 'accepted' %}
+                                    <span class="badge-ev badge-active font-sm">Accepted</span>
+                                {% elif item.status == 'rejected' %}
+                                    <span class="badge-ev badge-flagged font-sm">Rejected</span>
+                                {% else %}
+                                    <span class="badge-ev badge-pending font-sm">Requested</span>
+                                {% endif %}
+                            </h6>
+                            <span class="timeline-timestamp">
+                                <i class="bi bi-clock me-1"></i>{{ item.requested_at|date:"M d, Y H:i:s" }} UTC
+                            </span>
+                        </div>
+
+                        <!-- Actors Involved -->
+                        <div class="timeline-actor d-flex flex-wrap align-items-center gap-2 my-2">
+                            <!-- Sender Avatar & Name -->
+                            <div class="d-inline-flex align-items-center gap-1">
+                                <div class="badge rounded-circle bg-secondary text-white p-1" style="width: 24px; height: 24px; display: inline-flex; align-items: center; justify-content: center; font-size: 0.65rem;">
+                                    {% if item.from_user %}
+                                        {{ item.from_user.first_name|slice:":1"|upper }}{{ item.from_user.last_name|slice:":1"|upper|default:item.from_user.email|slice:":1"|upper }}
+                                    {% else %}
+                                        VI
+                                    {% endif %}
+                                </div>
+                                <span class="fw-semibold">
+                                    {% if item.from_user %}
+                                        {{ item.from_user.get_full_name|default:item.from_user.email }}
+                                    {% else %}
+                                        Initial Vault Intake
+                                    {% endif %}
+                                </span>
+                            </div>
+
+                            <i class="bi bi-arrow-right text-muted mx-1"></i>
+
+                            <!-- Recipient Avatar & Name -->
+                            <div class="d-inline-flex align-items-center gap-1">
+                                <div class="badge rounded-circle bg-ev-navy text-white p-1" style="width: 24px; height: 24px; display: inline-flex; align-items: center; justify-content: center; font-size: 0.65rem;">
+                                    {{ item.to_user.first_name|slice:":1"|upper }}{{ item.to_user.last_name|slice:":1"|upper|default:item.to_user.email|slice:":1"|upper }}
+                                </div>
+                                <span class="fw-semibold text-ev-navy">
+                                    {{ item.to_user.get_full_name|default:item.to_user.email }}
+                                </span>
+                                <span class="badge-role badge-role-{{ item.to_user.role|lower }} font-xs ms-1">
+                                    {{ item.to_user.get_role_display }}
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Reason / Justification Body -->
+                        <p class="timeline-body mt-2 mb-1">
+                            {{ item.reason|linebreaks }}
+                        </p>
+
+                        <!-- Resolution details -->
+                        {% if item.resolved_at %}
+                            <div class="mt-2 pt-2 border-top text-muted font-xs d-flex flex-wrap align-items-center justify-content-between">
+                                <div>
+                                    <strong>Resolved by:</strong>
+                                    {{ item.resolved_by.get_full_name|default:item.resolved_by.email }}
+                                </div>
+                                <div>
+                                    <strong>Resolved at:</strong>
+                                    {{ item.resolved_at|date:"M d, Y H:i:s" }} UTC
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="text-center py-4 text-muted">
+            <i class="bi bi-clock-history fs-3 d-block mb-2 text-secondary"></i>
+            <p class="mb-0 small">No custody transfers have been recorded for this evidence item yet.</p>
+        </div>
+    {% endif %}
+</div>

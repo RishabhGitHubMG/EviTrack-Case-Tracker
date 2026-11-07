@@ -1,0 +1,131 @@
+{% load static %}
+<header class="app-topbar">
+    <!-- Left Area: Hamburger and Dynamic Breadcrumbs -->
+    <div class="topbar-left">
+        <!-- Mobile Sidebar Hamburger Button -->
+        <button type="button" class="topbar-toggle-btn d-lg-none" id="mobileSidebarToggle" aria-label="Toggle navigation drawer">
+            <i class="bi bi-list fs-5"></i>
+        </button>
+
+        <!-- Breadcrumbs Navigation -->
+        <nav aria-label="breadcrumb">
+            <ol class="topbar-breadcrumbs mb-0">
+                <li>
+                    <a href="{% url 'cases:dashboard' %}" title="Dashboard">
+                        <i class="bi bi-house-door"></i>
+                    </a>
+                </li>
+                {% block breadcrumbs %}
+                    <li class="active" aria-current="page">Dashboard</li>
+                {% endblock %}
+            </ol>
+        </nav>
+    </div>
+
+    <!-- Right Area: Global Search, Quick Actions, Notifications, User Menu -->
+    <div class="topbar-right">
+        <!-- Global Live Search -->
+        <div class="topbar-search-container d-none d-md-block">
+            <i class="bi bi-search topbar-search-icon"></i>
+            <input type="text" class="topbar-search-input" id="topbarSearchInput" placeholder="Search cases, evidence, hashes..." autocomplete="off" aria-label="Global search">
+            <span class="topbar-search-shortcut" title="Press / to focus">/</span>
+            <!-- Search Results Dropdown -->
+            <div class="search-results-dropdown" id="searchResultsDropdown"></div>
+        </div>
+
+        <!-- Dark / Light Mode Switcher -->
+        <button type="button" class="topbar-icon-btn" id="themeToggleBtn" title="Toggle color theme" aria-label="Toggle dark mode">
+            <i class="bi bi-moon-stars theme-toggle-icon"></i>
+        </button>
+
+        <!-- Notifications Bell Dropdown -->
+        <div class="dropdown">
+            <button type="button" class="topbar-icon-btn" id="notificationDropdownBtn" data-bs-toggle="dropdown" aria-expanded="false" title="Notifications">
+                <i class="bi bi-bell"></i>
+                <span class="topbar-badge-pulse" style="display: {% if unread_notification_count and unread_notification_count > 0 %}flex{% else %}none{% endif %};">
+                    {{ unread_notification_count|default:"0" }}
+                </span>
+            </button>
+            <div class="dropdown-menu dropdown-menu-end notification-dropdown-menu" aria-labelledby="notificationDropdownBtn">
+                <div class="notification-header">
+                    <h6>Notifications</h6>
+                    {% if unread_notification_count and unread_notification_count > 0 %}
+                        <span class="badge-ev badge-warning font-sm">{{ unread_notification_count }} New</span>
+                    {% endif %}
+                </div>
+                <div class="notification-list">
+                    {% if recent_notifications %}
+                        {% for notif in recent_notifications %}
+                            <a href="{% url 'notifications:notification_detail' notif.pk %}" class="notification-item {% if not notif.is_read %}unread{% endif %}">
+                                <div class="notification-item-icon {% if notif.level == 'warning' %}warning{% elif notif.level == 'danger' %}danger{% endif %}">
+                                    <i class="bi {% if notif.level == 'danger' %}bi-shield-slash{% elif notif.level == 'warning' %}bi-exclamation-triangle{% else %}bi-info-circle{% endif %}"></i>
+                                </div>
+                                <div class="notification-item-content">
+                                    <div class="notification-item-title">{{ notif.title }}</div>
+                                    <div class="notification-item-time" data-relative-time="{{ notif.created_at|date:'c' }}">{{ notif.created_at|timesince }} ago</div>
+                                </div>
+                            </a>
+                        {% endfor %}
+                    {% else %}
+                        <div class="p-3 text-center text-muted font-sm">
+                            <i class="bi bi-bell-slash d-block mb-1 fs-4 text-secondary"></i>
+                            No recent notifications
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="notification-footer">
+                    <a href="{% url 'notifications:notification_list' %}" class="text-decoration-none">View All Notifications &rarr;</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- User Profile Dropdown -->
+        <div class="dropdown">
+            <button type="button" class="topbar-user-btn" id="userMenuDropdownBtn" data-bs-toggle="dropdown" aria-expanded="false">
+                <div class="topbar-user-avatar">
+                    {% if user.first_name and user.last_name %}
+                        {{ user.first_name|slice:":1"|upper }}{{ user.last_name|slice:":1"|upper }}
+                    {% elif user.username %}
+                        {{ user.username|slice:":2"|upper }}
+                    {% else %}
+                        ET
+                    {% endif %}
+                </div>
+                <div class="topbar-user-info d-none d-xl-flex">
+                    <span class="topbar-user-name">{{ user.get_full_name|default:user.username }}</span>
+                    <span class="topbar-user-role">{{ user.role|default:"Investigator" }}</span>
+                </div>
+                <i class="bi bi-chevron-down font-sm text-muted ms-1"></i>
+            </button>
+            <div class="dropdown-menu dropdown-menu-end topbar-dropdown-menu" aria-labelledby="userMenuDropdownBtn">
+                <div class="topbar-dropdown-header">
+                    <div class="fw-semibold text-truncate">{{ user.get_full_name|default:user.username }}</div>
+                    <small class="text-muted text-truncate d-block">{{ user.email }}</small>
+                    <span class="badge-role badge-role-{{ user.role|lower|default:'investigator' }} mt-1 d-inline-block">
+                        {{ user.role|default:"Investigator" }}
+                    </span>
+                </div>
+
+                <a class="topbar-dropdown-item" href="{% url 'accounts:profile' %}">
+                    <i class="bi bi-person"></i>
+                    <span>My Profile</span>
+                </a>
+                <a class="topbar-dropdown-item" href="{% url 'accounts:preferences' %}">
+                    <i class="bi bi-sliders"></i>
+                    <span>Preferences</span>
+                </a>
+                <a class="topbar-dropdown-item" href="{% url 'audit:my_activity' %}">
+                    <i class="bi bi-clock-history"></i>
+                    <span>Activity Log</span>
+                </a>
+
+                <div class="dropdown-divider my-1"></div>
+
+                <a class="topbar-dropdown-item text-danger" href="{% url 'accounts:logout' %}">
+                    <i class="bi bi-box-arrow-right text-danger"></i>
+                    <span>Sign Out</span>
+                </a>
+            </div>
+        </div>
+    </div>
+</header>

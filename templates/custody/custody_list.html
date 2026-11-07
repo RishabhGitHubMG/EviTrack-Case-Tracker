@@ -1,0 +1,199 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Chain of Custody - EviTrack{% endblock %}
+
+{% block breadcrumbs %}
+    <li class="active" aria-current="page">Custody</li>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0">
+    <!-- Header Page Title -->
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+        <div>
+            <h1 class="h3 fw-bold mb-1 text-ev-navy">Chain of Custody</h1>
+            <p class="text-muted small mb-0">Monitor custody handoffs, verify transfer authenticity, and manage incoming custody requests.</p>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+            <a href="{% url 'evidence:evidence_list' %}" class="btn btn-ev-outline">
+                <i class="bi bi-shield-lock me-1"></i> Evidence Vault
+            </a>
+        </div>
+    </div>
+
+    <!-- Section 1: Pending Transfers Incoming -->
+    <div class="card mb-4 border-0 shadow-sm">
+        <div class="card-header bg-card d-flex align-items-center justify-content-between py-3">
+            <div class="d-flex align-items-center gap-2">
+                <i class="bi bi-arrow-left-right text-warning fs-5"></i>
+                <h5 class="card-title mb-0 fw-bold">Pending Custody Transfers For You</h5>
+                {% if pending_transfers %}
+                    <span class="badge-ev badge-pending font-sm ms-2">{{ pending_transfers.count }} Action Required</span>
+                {% endif %}
+            </div>
+        </div>
+        <div class="card-body">
+            {% if pending_transfers %}
+                <div class="row g-3">
+                    {% for transfer in pending_transfers %}
+                        <div class="col-12 col-md-6 col-xl-4">
+                            <div class="card h-100 border p-3 bg-surface rounded-3 position-relative">
+                                <div class="d-flex align-items-start justify-content-between mb-2">
+                                    <span class="badge-ev badge-pending font-sm">
+                                        <i class="bi bi-hourglass-split me-1"></i> Requested
+                                    </span>
+                                    <span class="text-muted small">
+                                        <i class="bi bi-clock me-1"></i>{{ transfer.requested_at|date:"M d, Y H:i" }}
+                                    </span>
+                                </div>
+
+                                <div class="mb-2">
+                                    <a href="{% url 'evidence:evidence_detail' transfer.evidence.pk %}" class="fw-bold text-decoration-none text-ev-navy">
+                                        {{ transfer.evidence.evidence_no }}
+                                    </a>
+                                    <div class="text-truncate fw-medium text-dark small" title="{{ transfer.evidence.title }}">
+                                        {{ transfer.evidence.title }}
+                                    </div>
+                                    <div class="text-muted small">
+                                        Case: <strong>{{ transfer.evidence.case.case_no }}</strong> - {{ transfer.evidence.case.title|truncatechars:28 }}
+                                    </div>
+                                </div>
+
+                                <div class="bg-card p-2 rounded border mb-3 small">
+                                    <div class="text-muted mb-1">
+                                        <strong>Requested by:</strong>
+                                        {% if transfer.from_user %}
+                                            {{ transfer.from_user.get_full_name|default:transfer.from_user.email }}
+                                            <span class="badge-role badge-role-{{ transfer.from_user.role|lower }} ms-1">{{ transfer.from_user.get_role_display }}</span>
+                                        {% else %}
+                                            <span class="text-muted">Initial Intake</span>
+                                        {% endif %}
+                                    </div>
+                                    <div class="text-muted">
+                                        <strong>Reason:</strong>
+                                        <span class="fst-italic text-dark">{{ transfer.reason|truncatewords:20 }}</span>
+                                    </div>
+                                </div>
+
+                                <div class="mt-auto d-flex gap-2">
+                                    <a href="{% url 'custody:custody_respond' transfer.pk %}" class="btn btn-sm btn-ev-primary w-100">
+                                        <i class="bi bi-check2-circle me-1"></i> Review &amp; Respond
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="table-empty-state text-center py-4">
+                    <div class="empty-state-icon mx-auto mb-3">
+                        <i class="bi bi-check2-all text-success"></i>
+                    </div>
+                    <h6 class="empty-state-title">No Pending Transfers</h6>
+                    <p class="empty-state-description small text-muted">
+                        You have no incoming evidence custody transfer requests requiring your review.
+                    </p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Section 2: Recent Activity Across Your Cases -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-card d-flex align-items-center justify-content-between py-3">
+            <div class="d-flex align-items-center gap-2">
+                <i class="bi bi-clock-history text-ev-navy fs-5"></i>
+                <h5 class="card-title mb-0 fw-bold">Recent Custody Activity</h5>
+            </div>
+            <span class="text-muted small">Showing up to last 30 recorded custody events</span>
+        </div>
+        <div class="card-body p-0">
+            {% if recent_events %}
+                <div class="table-responsive">
+                    <table class="table table-custom align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th>Timestamp</th>
+                                <th>Evidence</th>
+                                <th>Case</th>
+                                <th>From</th>
+                                <th>To</th>
+                                <th>Status</th>
+                                <th>Reason / Notes</th>
+                                <th class="text-end">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for event in recent_events %}
+                                <tr>
+                                    <td class="text-nowrap small text-muted">
+                                        {{ event.requested_at|date:"Y-m-d H:i" }}
+                                    </td>
+                                    <td>
+                                        <a href="{% url 'evidence:evidence_detail' event.evidence.pk %}" class="fw-bold font-mono text-decoration-none text-ev-navy">
+                                            {{ event.evidence.evidence_no }}
+                                        </a>
+                                        <div class="small text-muted text-truncate" style="max-width: 180px;" title="{{ event.evidence.title }}">
+                                            {{ event.evidence.title }}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <a href="{% url 'cases:case_detail' event.evidence.case.pk %}" class="text-decoration-none text-muted font-sm">
+                                            {{ event.evidence.case.case_no }}
+                                        </a>
+                                    </td>
+                                    <td class="small">
+                                        {% if event.from_user %}
+                                            {{ event.from_user.get_full_name|default:event.from_user.email }}
+                                        {% else %}
+                                            <span class="text-muted fst-italic">Initial Intake</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="small">
+                                        <strong>{{ event.to_user.get_full_name|default:event.to_user.email }}</strong>
+                                    </td>
+                                    <td>
+                                        {% if event.status == 'accepted' %}
+                                            <span class="badge-ev badge-active">Accepted</span>
+                                        {% elif event.status == 'rejected' %}
+                                            <span class="badge-ev badge-flagged">Rejected</span>
+                                        {% else %}
+                                            <span class="badge-ev badge-pending">Requested</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="small" style="max-width: 260px;">
+                                        <div class="text-truncate" title="{{ event.reason }}">
+                                            {{ event.reason }}
+                                        </div>
+                                        {% if event.resolved_by %}
+                                            <div class="text-muted font-xs">
+                                                Resolved by {{ event.resolved_by.get_full_name|default:event.resolved_by.email }} on {{ event.resolved_at|date:"M d, H:i" }}
+                                            </div>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-end text-nowrap">
+                                        <a href="{% url 'custody:custody_qr_label' event.evidence.pk %}" target="_blank" class="btn btn-sm btn-ev-outline" title="Print QR Label">
+                                            <i class="bi bi-qr-code"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="table-empty-state text-center py-5">
+                    <div class="empty-state-icon mx-auto mb-3">
+                        <i class="bi bi-folder-x"></i>
+                    </div>
+                    <h6 class="empty-state-title">No Custody History Found</h6>
+                    <p class="empty-state-description small text-muted">
+                        No chain of custody transactions have been recorded for your accessible cases yet.
+                    </p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

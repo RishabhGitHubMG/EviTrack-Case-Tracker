@@ -1,0 +1,171 @@
+{% extends 'base_minimal.html' %}
+{% load static %}
+
+{% block title %}EviTrack - Secure Digital Evidence & Chain of Custody Management{% endblock %}
+
+{% block content %}
+<!-- Landing Page Container (No wrapper margins) -->
+<div class="landing-page-wrapper">
+    <!-- Hero Section with Deep Navy Gradient -->
+    <section class="landing-hero rounded-4 mb-5 shadow-lg">
+        <div class="container px-4">
+            <div class="landing-hero-badge">
+                <i class="bi bi-shield-check"></i> CJIS &amp; ISO/IEC 27037 Standard Compliant
+            </div>
+            <h1 class="display-4 fw-bold">Secure Digital Evidence Management</h1>
+            <p class="lead">
+                Built specifically for police departments, forensic laboratories, prosecutors, and criminal defense law firms to safeguard the cryptographic integrity and unbroken chain of custody for digital evidence.
+            </p>
+            <div class="d-flex flex-wrap justify-content-center gap-3 mb-4">
+                {% if user.is_authenticated %}
+                    <a href="{% url 'cases:dashboard' %}" class="btn btn-lg btn-ev-primary px-4 py-3">
+                        <i class="bi bi-speedometer2"></i> Enter Case Dashboard
+                    </a>
+                {% else %}
+                    <a href="{% url 'accounts:login' %}" class="btn btn-lg btn-ev-primary px-4 py-3">
+                        <i class="bi bi-shield-lock"></i> Sign In to Vault
+                    </a>
+                {% endif %}
+                <a href="#features" class="btn btn-lg btn-ev-outline text-white border-light px-4 py-3">
+                    <i class="bi bi-grid-3x3-gap"></i> Explore Features
+                </a>
+            </div>
+
+            <!-- Trust Metrics Row -->
+            <div class="row g-4 mt-4 pt-3 border-top border-white border-opacity-10 text-white-50">
+                <div class="col-6 col-md-3">
+                    <div class="h2 fw-bold text-white mb-0">SHA-256</div>
+                    <small class="text-uppercase tracking-wider">Cryptographic Hashing</small>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="h2 fw-bold text-white mb-0">100%</div>
+                    <small class="text-uppercase tracking-wider">Insert-Only Audit Trail</small>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="h2 fw-bold text-white mb-0">Court-Ready</div>
+                    <small class="text-uppercase tracking-wider">Evidentiary Reports</small>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="h2 fw-bold text-white mb-0">Zero Trust</div>
+                    <small class="text-uppercase tracking-wider">Role-Based Access Control</small>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Core Features Section -->
+    <section class="py-5" id="features">
+        <div class="text-center mb-5">
+            <span class="badge-ev badge-investigation font-sm mb-2">Enterprise Capabilities</span>
+            <h2 class="display-6 fw-bold">Engineered for Legal &amp; Law Enforcement Rigor</h2>
+            <p class="text-muted max-w-2xl mx-auto font-lg">
+                Protecting critical evidentiary records from intake through court proceedings with mathematical certainty and legal precision.
+            </p>
+        </div>
+
+        <div class="row g-4">
+            <!-- Feature 1: Case Management -->
+            <div class="col-md-6 col-lg-4">
+                <div class="landing-feature-card">
+                    <div class="landing-feature-icon">
+                        <i class="bi bi-folder2-open"></i>
+                    </div>
+                    <h3 class="h5 fw-bold mb-2">Case Management</h3>
+                    <p class="text-muted font-sm mb-0">
+                        Organize investigative dockets, manage milestones, track associated defendants, and assign investigators and legal reviewers with granular RBAC permissions.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Feature 2: Evidence Integrity -->
+            <div class="col-md-6 col-lg-4">
+                <div class="landing-feature-card">
+                    <div class="landing-feature-icon">
+                        <i class="bi bi-shield-lock"></i>
+                    </div>
+                    <h3 class="h5 fw-bold mb-2">Evidence Integrity</h3>
+                    <p class="text-muted font-sm mb-0">
+                        Automated dual cryptographic hashing (SHA-256 and MD5) upon intake. Continuously monitor for tampering with automatic scheduled integrity verification scans.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Feature 3: Chain of Custody -->
+            <div class="col-md-6 col-lg-4">
+                <div class="landing-feature-card">
+                    <div class="landing-feature-icon">
+                        <i class="bi bi-arrow-left-right"></i>
+                    </div>
+                    <h3 class="h5 fw-bold mb-2">Chain of Custody</h3>
+                    <p class="text-muted font-sm mb-0">
+                        Track every physical and digital evidence transfer with dual-sign custody receipts, purpose verification, and unbroken legal accountability records.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Feature 4: Smart Reminders -->
+            <div class="col-md-6 col-lg-4">
+                <div class="landing-feature-card">
+                    <div class="landing-feature-icon">
+                        <i class="bi bi-bell"></i>
+                    </div>
+                    <h3 class="h5 fw-bold mb-2">Smart Reminders</h3>
+                    <p class="text-muted font-sm mb-0">
+                        Intelligent alerts for upcoming court hearings, discovery deadlines, statutory retention expirations, and scheduled evidence re-verifications.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Feature 5: Immutable Audit Trail -->
+            <div class="col-md-6 col-lg-4">
+                <div class="landing-feature-card">
+                    <div class="landing-feature-icon">
+                        <i class="bi bi-journal-text"></i>
+                    </div>
+                    <h3 class="h5 fw-bold mb-2">Immutable Audit Trail</h3>
+                    <p class="text-muted font-sm mb-0">
+                        Append-only logging records every user interaction, download, view, and hash check. Cryptographically verifiable logs prevent internal tampering.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Feature 6: Court-Ready PDF Reports -->
+            <div class="col-md-6 col-lg-4">
+                <div class="landing-feature-card">
+                    <div class="landing-feature-icon">
+                        <i class="bi bi-file-earmark-pdf"></i>
+                    </div>
+                    <h3 class="h5 fw-bold mb-2">PDF Forensic Reports</h3>
+                    <p class="text-muted font-sm mb-0">
+                        Generate official, formatted chain-of-custody certificates, evidence dossiers, and case audit summaries ready for submission in judicial proceedings.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Security & Architecture Banner -->
+    <section class="card border-0 bg-navy text-white p-4 p-md-5 my-5 shadow-lg rounded-4">
+        <div class="row align-items-center g-4">
+            <div class="col-lg-8">
+                <span class="badge bg-amber text-dark fw-bold mb-2">Forensic Storage Isolation</span>
+                <h3 class="h2 fw-bold text-white mb-2">Strict Defense-in-Depth Architecture</h3>
+                <p class="text-white-50 mb-0">
+                    All evidentiary digital assets are stored completely outside the public web server root, accessible solely via authenticated, role-verified, and cryptographically audited streams.
+                </p>
+            </div>
+            <div class="col-lg-4 text-lg-end">
+                {% if user.is_authenticated %}
+                    <a href="{% url 'cases:dashboard' %}" class="btn btn-ev-primary px-4 py-3">
+                        <i class="bi bi-arrow-right"></i> Open Evidence Vault
+                    </a>
+                {% else %}
+                    <a href="{% url 'accounts:login' %}" class="btn btn-ev-primary px-4 py-3">
+                        <i class="bi bi-box-arrow-in-right"></i> Authorize Access
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </section>
+</div>
+{% endblock %}

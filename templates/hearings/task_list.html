@@ -1,0 +1,270 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Tasks & Deadlines - EviTrack{% endblock %}
+
+{% block breadcrumbs %}
+    <li class="active" aria-current="page">Tasks</li>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0">
+    <!-- Page Header -->
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+        <div>
+            <h1 class="h3 fw-bold mb-1 text-ev-navy">Investigative Tasks &amp; Court Deadlines</h1>
+            <p class="text-muted small mb-0">Track forensic tasks, filing deadlines, and court submissions across active cases.</p>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+            <a href="{% url 'hearings:calendar' %}" class="btn btn-ev-outline">
+                <i class="bi bi-calendar3 me-1"></i> Calendar
+            </a>
+            <!-- New Task Button with Dropdown of cases -->
+            <div class="dropdown">
+                <button class="btn btn-ev-primary dropdown-toggle" type="button" id="createTaskDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="bi bi-plus-lg me-1"></i> New Task
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="createTaskDropdown" style="max-height: 300px; overflow-y: auto;">
+                    <li class="dropdown-header">Select Case for Task</li>
+                    {% for c in accessible_cases %}
+                        <li>
+                            <a class="dropdown-item d-flex justify-content-between align-items-center" href="{% url 'hearings:task_create' c.pk %}">
+                                <span class="fw-semibold">{{ c.case_no }}</span>
+                                <span class="small text-muted text-truncate ms-2" style="max-width: 150px;">{{ c.title }}</span>
+                            </a>
+                        </li>
+                    {% empty %}
+                        <li><span class="dropdown-item text-muted fst-italic">No accessible cases found</span></li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Status Tabs & Filter Bar -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body p-3">
+            <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+                <!-- Nav Pills for Status -->
+                <ul class="nav nav-pills gap-1">
+                    <li class="nav-item">
+                        <a class="nav-link font-sm {% if current_status == 'all' %}active bg-ev-navy text-white{% endif %}" href="?status=all{% if case_filter %}&case={{ case_filter }}{% endif %}{% if my_tasks_only %}&mine=1{% endif %}">
+                            All ({{ count_all }})
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link font-sm {% if current_status == 'pending' %}active bg-warning text-dark{% endif %}" href="?status=pending{% if case_filter %}&case={{ case_filter }}{% endif %}{% if my_tasks_only %}&mine=1{% endif %}">
+                            Pending ({{ count_pending }})
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link font-sm {% if current_status == 'in_progress' %}active bg-primary text-white{% endif %}" href="?status=in_progress{% if case_filter %}&case={{ case_filter }}{% endif %}{% if my_tasks_only %}&mine=1{% endif %}">
+                            In Progress ({{ count_in_progress }})
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link font-sm {% if current_status == 'overdue' %}active bg-danger text-white{% endif %}" href="?status=overdue{% if case_filter %}&case={{ case_filter }}{% endif %}{% if my_tasks_only %}&mine=1{% endif %}">
+                            Overdue ({{ count_overdue }})
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link font-sm {% if current_status == 'completed' %}active bg-success text-white{% endif %}" href="?status=completed{% if case_filter %}&case={{ case_filter }}{% endif %}{% if my_tasks_only %}&mine=1{% endif %}">
+                            Completed ({{ count_completed }})
+                        </a>
+                    </li>
+                </ul>
+
+                <!-- Filter Controls -->
+                <form method="get" class="d-flex align-items-center gap-2">
+                    <input type="hidden" name="status" value="{{ current_status }}">
+
+                    <a href="?status={{ current_status }}{% if not my_tasks_only %}&mine=1{% endif %}{% if case_filter %}&case={{ case_filter }}{% endif %}" class="btn btn-sm {% if my_tasks_only %}btn-ev-navy text-white{% else %}btn-ev-outline{% endif %}">
+                        <i class="bi bi-person-check me-1"></i> Assigned to Me
+                    </a>
+
+                    <div class="input-group input-group-sm">
+                        <input type="text" name="case" class="form-control" placeholder="Case number..." value="{{ case_filter }}">
+                        <button class="btn btn-ev-outline" type="submit">
+                            <i class="bi bi-search"></i>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Task Items Table -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-0">
+            {% if tasks %}
+                <div class="table-responsive">
+                    <table class="table table-custom align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th style="width: 45px;">Status</th>
+                                <th>Task Details</th>
+                                <th>Case</th>
+                                <th>Assignee</th>
+                                <th>Due Date</th>
+                                <th class="text-end">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for task in tasks %}
+                                <tr id="task-row-{{ task.pk }}" class="{% if task.status == 'overdue' %}table-danger-light{% endif %}">
+                                    <td class="text-center">
+                                        <!-- Quick Status Toggle Select -->
+                                        {% if not request.user.is_reviewer %}
+                                            <select class="form-select form-select-sm task-status-select" data-task-id="{{ task.pk }}" style="width: auto; min-width: 120px;">
+                                                <option value="pending" {% if task.status == 'pending' %}selected{% endif %}>Pending</option>
+                                                <option value="in_progress" {% if task.status == 'in_progress' %}selected{% endif %}>In Progress</option>
+                                                <option value="completed" {% if task.status == 'completed' %}selected{% endif %}>Completed</option>
+                                                <option value="overdue" {% if task.status == 'overdue' %}selected{% endif %}>Overdue</option>
+                                            </select>
+                                        {% else %}
+                                            <span class="badge-ev badge-{{ task.status|lower }}">{{ task.get_status_display }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <span class="fw-semibold text-ev-navy {% if task.status == 'completed' %}text-decoration-line-through text-muted{% endif %}">
+                                                {{ task.title }}
+                                            </span>
+                                            {% if task.is_filing_deadline %}
+                                                <span class="badge bg-danger text-white font-xs" title="Strict Court Statutory Filing Deadline">
+                                                    <i class="bi bi-exclamation-triangle-fill me-1"></i> DEADLINE
+                                                </span>
+                                            {% endif %}
+                                        </div>
+                                        {% if task.description %}
+                                            <div class="small text-muted text-truncate" style="max-width: 320px;" title="{{ task.description }}">
+                                                {{ task.description }}
+                                            </div>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <a href="{% url 'cases:case_detail' task.case.pk %}" class="fw-semibold text-decoration-none text-ev-navy font-sm">
+                                            {{ task.case.case_no }}
+                                        </a>
+                                    </td>
+                                    <td class="small">
+                                        <div class="fw-medium text-dark">
+                                            {{ task.assigned_to.get_full_name|default:task.assigned_to.email }}
+                                        </div>
+                                        <span class="badge-role badge-role-{{ task.assigned_to.role|lower }} font-xs">
+                                            {{ task.assigned_to.get_role_display }}
+                                        </span>
+                                    </td>
+                                    <td class="text-nowrap small">
+                                        <div class="{% if task.status == 'overdue' %}text-danger fw-bold{% elif task.is_filing_deadline %}text-danger fw-semibold{% else %}text-dark{% endif %}">
+                                            <i class="bi bi-clock me-1"></i>{{ task.due_date|date:"M d, Y H:i" }}
+                                        </div>
+                                        {% if task.completed_at %}
+                                            <div class="text-muted font-xs">
+                                                Done: {{ task.completed_at|date:"M d, H:i" }}
+                                            </div>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-end text-nowrap">
+                                        {% if not request.user.is_reviewer %}
+                                            <a href="{% url 'hearings:task_update' task.pk %}" class="btn btn-sm btn-ev-outline" title="Edit Task">
+                                                <i class="bi bi-pencil"></i> Edit
+                                            </a>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                {% if is_paginated %}
+                    <div class="card-footer bg-card d-flex justify-content-between align-items-center py-3">
+                        <span class="small text-muted">
+                            Showing page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                        </span>
+                        <nav aria-label="Task pagination">
+                            <ul class="pagination pagination-sm mb-0">
+                                {% if page_obj.has_previous %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}&status={{ current_status }}{% if case_filter %}&case={{ case_filter }}{% endif %}{% if my_tasks_only %}&mine=1{% endif %}">Previous</a>
+                                    </li>
+                                {% endif %}
+                                {% for num in page_obj.paginator.page_range %}
+                                    {% if page_obj.number == num %}
+                                        <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                                    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ num }}&status={{ current_status }}{% if case_filter %}&case={{ case_filter }}{% endif %}{% if my_tasks_only %}&mine=1{% endif %}">{{ num }}</a>
+                                        </li>
+                                    {% endif %}
+                                {% endfor %}
+                                {% if page_obj.has_next %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ page_obj.next_page_number }}&status={{ current_status }}{% if case_filter %}&case={{ case_filter }}{% endif %}{% if my_tasks_only %}&mine=1{% endif %}">Next</a>
+                                    </li>
+                                {% endif %}
+                            </ul>
+                        </nav>
+                    </div>
+                {% endif %}
+            {% else %}
+                <div class="table-empty-state text-center py-5">
+                    <div class="empty-state-icon mx-auto mb-3">
+                        <i class="bi bi-check2-circle"></i>
+                    </div>
+                    <h6 class="empty-state-title">No Tasks Found</h6>
+                    <p class="empty-state-description small text-muted">
+                        No investigative tasks match this filter. Create a new task to track deadlines.
+                    </p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- AJAX Status update script -->
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const statusSelects = document.querySelectorAll('.task-status-select');
+    statusSelects.forEach(select => {
+        select.addEventListener('change', function () {
+            const taskId = this.dataset.taskId;
+            const newStatus = this.value;
+            const csrfToken = '{{ csrf_token }}';
+
+            fetch(`/hearings/tasks/${taskId}/status/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': csrfToken,
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: `status=${encodeURIComponent(newStatus)}`
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    const row = document.getElementById(`task-row-${taskId}`);
+                    if (row) {
+                        const titleEl = row.querySelector('.fw-semibold');
+                        if (data.is_completed) {
+                            titleEl.classList.add('text-decoration-line-through', 'text-muted');
+                        } else {
+                            titleEl.classList.remove('text-decoration-line-through', 'text-muted');
+                        }
+                    }
+                } else {
+                    alert(data.error || 'Failed to update task status.');
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert('An error occurred updating the task status.');
+            });
+        });
+    });
+});
+</script>
+{% endblock %}
