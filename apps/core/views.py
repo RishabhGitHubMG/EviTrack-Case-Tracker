@@ -54,50 +54,82 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         return User.objects.filter(is_approved=False, is_active=True).count()
 
 
+SEARCH_CATEGORIES = ('Cases', 'Parties', 'Evidence')
+
+
+def _grouped_search(user: Any, query: str, limit: int) -> list[dict[str, str]]:
+    accessible_cases = get_user_accessible_cases(user)
+    results = []
+    cases = Case.objects.filter(pk__in=accessible_cases).filter(
+        Q(case_no__icontains=query) | Q(title__icontains=query)
+    ).order_by('case_no')[:limit]
+    results.extend({
+        'category': 'Cases',
+        'title': f'{case.case_no} — {case.title}',
+        'subtitle': case.get_status_display(),
+        'url': reverse('cases:case_detail', kwargs={'pk': case.pk}),
+        'icon': 'bi-folder2-open',
+    } for case in cases)
+
+    parties = Party.objects.filter(case__in=accessible_cases).filter(
+        Q(name__icontains=query) | Q(email__icontains=query) | Q(phone__icontains=query)
+    ).select_related('case').order_by('name').distinct()[:limit]
+    results.extend({
+        'category': 'Parties',
+        'title': party.name,
+        'subtitle': f'{party.get_party_type_display()} · {party.case.case_no}',
+        'url': f"{reverse('cases:case_detail', kwargs={'pk': party.case_id})}#parties",
+        'icon': 'bi-person-vcard',
+    } for party in parties)
+
+    evidence_items = Evidence.objects.filter(case__in=accessible_cases, is_latest_version=True).filter(
+        Q(evidence_no__icontains=query)
+        | Q(title__icontains=query)
+        | Q(sha256__icontains=query)
+        | Q(tags__name__icontains=query)
+    ).select_related('case').order_by('evidence_no').distinct()[:limit]
+    results.extend({
+        'category': 'Evidence',
+        'title': f'{item.evidence_no} — {item.title}',
+        'subtitle': f'{item.case.case_no} · {item.get_status_display()}',
+        'url': reverse('evidence:evidence_detail', kwargs={'pk': item.pk}),
+        'icon': 'bi-file-earmark-lock',
+    } for item in evidence_items)
+    return results
+
+
+def _clean_query(request: HttpRequest) -> str:
+    return request.GET.get('q', '').strip()[:100]
+
+
 class SearchAPIView(LoginRequiredMixin, View):
     def get(self, request: HttpRequest) -> JsonResponse:
-        query = request.GET.get('q', '').strip()[:100]
+        query = _clean_query(request)
         if len(query) < 2:
             return JsonResponse({'results': []})
+        return JsonResponse({'results': _grouped_search(request.user, query, limit=5)})
 
-        accessible_cases = get_user_accessible_cases(request.user)
-        results = []
-        cases = Case.objects.filter(pk__in=accessible_cases).filter(
-            Q(case_no__icontains=query) | Q(title__icontains=query)
-        ).order_by('case_no')[:5]
-        results.extend({
-            'category': 'Cases',
-            'title': f'{case.case_no} — {case.title}',
-            'subtitle': case.get_status_display(),
-            'url': reverse('cases:case_detail', kwargs={'pk': case.pk}),
-            'icon': 'bi-folder2-open',
-        } for case in cases)
 
-        parties = Party.objects.filter(case__in=accessible_cases).filter(
-            Q(name__icontains=query) | Q(email__icontains=query) | Q(phone__icontains=query)
-        ).select_related('case').order_by('name').distinct()[:5]
-        results.extend({
-            'category': 'Parties',
-            'title': party.name,
-            'subtitle': f'{party.get_party_type_display()} · {party.case.case_no}',
-            'url': f"{reverse('cases:case_detail', kwargs={'pk': party.case_id})}#parties",
-            'icon': 'bi-person-vcard',
-        } for party in parties)
+class SearchPageView(LoginRequiredMixin, TemplateView):
+    template_name = 'core/search.html'
 
-        evidence_items = Evidence.objects.filter(case__in=accessible_cases, is_latest_version=True).filter(
-            Q(evidence_no__icontains=query)
-            | Q(title__icontains=query)
-            | Q(sha256__icontains=query)
-            | Q(tags__name__icontains=query)
-        ).select_related('case').order_by('evidence_no').distinct()[:5]
-        results.extend({
-            'category': 'Evidence',
-            'title': f'{item.evidence_no} — {item.title}',
-            'subtitle': f'{item.case.case_no} · {item.get_status_display()}',
-            'url': reverse('evidence:evidence_detail', kwargs={'pk': item.pk}),
-            'icon': 'bi-file-earmark-lock',
-        } for item in evidence_items)
-        return JsonResponse({'results': results})
+    def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
+        context = super().get_context_data(**kwargs)
+        query = _clean_query(self.request)
+        groups = []
+        if len(query) >= 2:
+            results = _grouped_search(self.request.user, query, limit=25)
+            for category in SEARCH_CATEGORIES:
+                items = [item for item in results if item['category'] == category]
+                if items:
+                    groups.append({'name': category, 'items': items})
+        context.update({
+            'query': query,
+            'groups': groups,
+            'total_results': sum(len(group['items']) for group in groups),
+            'searched': len(query) >= 2,
+        })
+        return context
 
 
 class DashboardChartsAPIView(LoginRequiredMixin, View):

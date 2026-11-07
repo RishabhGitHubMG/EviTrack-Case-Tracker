@@ -41,6 +41,7 @@
       sessionPingUrl: bodyData.sessionPingUrl,
       notificationCountUrl: bodyData.notificationCountUrl,
       searchApiUrl: bodyData.searchUrl,
+      searchPageUrl: bodyData.searchPageUrl,
       themeToggleUrl: bodyData.themeUrl,
       isAuthenticated: bodyData.authenticated === 'true',
     }
@@ -529,6 +530,7 @@
         html += `</div>`;
       }
 
+      html += `<a href="${Config.searchPageUrl}?q=${encodeURIComponent(query)}" class="search-results-footer">See all results for &ldquo;${escapeHtml(query)}&rdquo;</a>`;
       dropdown.innerHTML = html;
       dropdown.classList.add('show');
     }
@@ -544,6 +546,11 @@
       if (e.key === 'Escape') {
         dropdown.classList.remove('show');
         searchInput.blur();
+      }
+      const query = searchInput.value.trim();
+      if (e.key === 'Enter' && query.length >= 2) {
+        e.preventDefault();
+        window.location.href = `${Config.searchPageUrl}?q=${encodeURIComponent(query)}`;
       }
     });
   };

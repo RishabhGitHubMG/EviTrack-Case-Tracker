@@ -10,11 +10,11 @@
     <section class="landing-hero rounded-4 mb-5 shadow-lg">
         <div class="container px-4">
             <div class="landing-hero-badge">
-                <i class="bi bi-shield-check"></i> CJIS &amp; ISO/IEC 27037 Standard Compliant
+                <i class="bi bi-shield-check"></i> Role-based access &middot; Hash-verified evidence
             </div>
             <h1 class="display-4 fw-bold">Secure Digital Evidence Management</h1>
             <p class="lead">
-                Built specifically for police departments, forensic laboratories, prosecutors, and criminal defense law firms to safeguard the cryptographic integrity and unbroken chain of custody for digital evidence.
+A case and evidence tracker for investigators, prosecutors and evidence custodians. It records SHA-256 hashes at intake, tracks every custody transfer, and keeps hearings and deadlines in one place.
             </p>
             <div class="d-flex flex-wrap justify-content-center gap-3 mb-4">
                 {% if user.is_authenticated %}
@@ -38,16 +38,16 @@
                     <small class="text-uppercase tracking-wider">Cryptographic Hashing</small>
                 </div>
                 <div class="col-6 col-md-3">
-                    <div class="h2 fw-bold text-white mb-0">100%</div>
-                    <small class="text-uppercase tracking-wider">Insert-Only Audit Trail</small>
+                    <div class="h2 fw-bold text-white mb-0">Hash chain</div>
+                    <small class="text-uppercase tracking-wider">Audit Log Verification</small>
                 </div>
                 <div class="col-6 col-md-3">
-                    <div class="h2 fw-bold text-white mb-0">Court-Ready</div>
-                    <small class="text-uppercase tracking-wider">Evidentiary Reports</small>
+                    <div class="h2 fw-bold text-white mb-0">5 PDFs</div>
+                    <small class="text-uppercase tracking-wider">Per-Case Reports</small>
                 </div>
                 <div class="col-6 col-md-3">
-                    <div class="h2 fw-bold text-white mb-0">Zero Trust</div>
-                    <small class="text-uppercase tracking-wider">Role-Based Access Control</small>
+                    <div class="h2 fw-bold text-white mb-0">Case scope</div>
+                    <small class="text-uppercase tracking-wider">Access Limited by Assignment</small>
                 </div>
             </div>
         </div>
@@ -72,7 +72,7 @@
                     </div>
                     <h3 class="h5 fw-bold mb-2">Case Management</h3>
                     <p class="text-muted font-sm mb-0">
-                        Organize investigative dockets, manage milestones, track associated defendants, and assign investigators and legal reviewers with granular RBAC permissions.
+Organise cases with parties, assigned team members, status transitions and a per-case timeline.
                     </p>
                 </div>
             </div>
@@ -85,7 +85,7 @@
                     </div>
                     <h3 class="h5 fw-bold mb-2">Evidence Integrity</h3>
                     <p class="text-muted font-sm mb-0">
-                        Automated dual cryptographic hashing (SHA-256 and MD5) upon intake. Continuously monitor for tampering with automatic scheduled integrity verification scans.
+A SHA-256 hash is computed at upload. Verify Integrity recomputes it on demand and records each check, flagging any mismatch.
                     </p>
                 </div>
             </div>
@@ -98,7 +98,7 @@
                     </div>
                     <h3 class="h5 fw-bold mb-2">Chain of Custody</h3>
                     <p class="text-muted font-sm mb-0">
-                        Track every physical and digital evidence transfer with dual-sign custody receipts, purpose verification, and unbroken legal accountability records.
+Transfers are requested, then accepted or rejected by the recipient. Every decision is kept on a per-item custody timeline with a printable QR label.
                     </p>
                 </div>
             </div>
@@ -111,7 +111,7 @@
                     </div>
                     <h3 class="h5 fw-bold mb-2">Smart Reminders</h3>
                     <p class="text-muted font-sm mb-0">
-                        Intelligent alerts for upcoming court hearings, discovery deadlines, statutory retention expirations, and scheduled evidence re-verifications.
+Email and in-app reminders for upcoming hearings and task deadlines, with overdue tasks highlighted and failed deliveries escalated to the case manager.
                     </p>
                 </div>
             </div>
@@ -124,7 +124,7 @@
                     </div>
                     <h3 class="h5 fw-bold mb-2">Immutable Audit Trail</h3>
                     <p class="text-muted font-sm mb-0">
-                        Append-only logging records every user interaction, download, view, and hash check. Cryptographically verifiable logs prevent internal tampering.
+Significant actions are written to an audit log that is chained by hash, so admins can verify the chain and export filtered records as CSV.
                     </p>
                 </div>
             </div>
@@ -137,10 +137,55 @@
                     </div>
                     <h3 class="h5 fw-bold mb-2">PDF Forensic Reports</h3>
                     <p class="text-muted font-sm mb-0">
-                        Generate official, formatted chain-of-custody certificates, evidence dossiers, and case audit summaries ready for submission in judicial proceedings.
+Download five PDFs per case: summary, evidence register, custody history, hearing schedule and integrity report.
                     </p>
                 </div>
             </div>
+        </div>
+    </section>
+
+    <!-- How It Works -->
+    <section class="py-5" id="how-it-works">
+        <div class="text-center mb-5">
+            <span class="badge-ev badge-investigation font-sm mb-2">How it works</span>
+            <h2 class="display-6 fw-bold">From intake to court in four steps</h2>
+        </div>
+        <div class="row g-4">
+            <div class="col-md-6 col-lg-3">
+                <div class="landing-feature-card h-100">
+                    <div class="landing-feature-icon"><i class="bi bi-1-circle"></i></div>
+                    <h3 class="h6 fw-bold mb-2">Open a case</h3>
+                    <p class="text-muted font-sm mb-0">Create the case, add parties and assign the investigators who can see it.</p>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <div class="landing-feature-card h-100">
+                    <div class="landing-feature-icon"><i class="bi bi-2-circle"></i></div>
+                    <h3 class="h6 fw-bold mb-2">Upload evidence</h3>
+                    <p class="text-muted font-sm mb-0">Files are hashed as they arrive and stored outside the public web root.</p>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <div class="landing-feature-card h-100">
+                    <div class="landing-feature-icon"><i class="bi bi-3-circle"></i></div>
+                    <h3 class="h6 fw-bold mb-2">Hand off custody</h3>
+                    <p class="text-muted font-sm mb-0">Request a transfer, wait for the recipient to accept or reject it, and read the timeline.</p>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <div class="landing-feature-card h-100">
+                    <div class="landing-feature-icon"><i class="bi bi-4-circle"></i></div>
+                    <h3 class="h6 fw-bold mb-2">Prepare for court</h3>
+                    <p class="text-muted font-sm mb-0">Track hearings and deadlines, then export the case PDFs.</p>
+                </div>
+            </div>
+        </div>
+        <div class="text-center mt-5">
+            {% if user.is_authenticated %}
+                <a href="{% url 'core:dashboard' %}" class="btn btn-lg btn-ev-primary px-4 py-3"><i class="bi bi-speedometer2"></i> Go to dashboard</a>
+            {% else %}
+                <a href="{% url 'accounts:login' %}" class="btn btn-lg btn-ev-primary px-4 py-3"><i class="bi bi-shield-lock"></i> Sign in</a>
+            {% endif %}
         </div>
     </section>
 

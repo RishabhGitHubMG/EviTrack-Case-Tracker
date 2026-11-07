@@ -58,18 +58,30 @@
                 <dt>Holder</dt><dd>{{ evidence.current_holder|default:"-" }}</dd>
                 <dt>Uploaded by</dt><dd>{{ evidence.uploaded_by|default:"-" }} on {{ evidence.uploaded_at|date:"d M Y H:i" }}</dd>
                 <dt>File</dt><dd class="text-break">{{ evidence.original_filename }} ({{ evidence.mime_type }})</dd>
-                <dt>SHA-256</dt><dd class="font-mono text-break">{{ evidence.sha256 }}</dd>
+                <dt>SHA-256</dt>
+                <dd>
+                    <div class="evidence-hash-box">
+                        <span class="hash-display text-break">{{ evidence.sha256 }}</span>
+                        <button type="button" class="hash-copy-btn" data-hash="{{ evidence.sha256 }}" aria-label="Copy SHA-256 hash" title="Copy hash"><i class="bi bi-clipboard"></i></button>
+                    </div>
+                </dd>
                 <dt>Tags</dt><dd>{% for tag in evidence.tags.all %}<span class="badge-ev">{{ tag.name }}</span> {% empty %}-{% endfor %}</dd>
             </dl>
         </div>
 
         <div class="card-ev p-4 mb-3">
             <h2 class="h6">Integrity checks</h2>
+            <div id="integrityChecks">
             {% for check in integrity_checks %}
-                <div class="font-sm py-1"><span class="badge-ev">{{ check.get_result_display }}</span> <span class="text-muted">{{ check.checked_at|date:"d M Y H:i" }}</span></div>
+                <div class="font-sm py-1">
+                    <span class="badge-ev {% if check.result == 'verified' %}badge-verified{% else %}badge-flagged{% endif %}">{{ check.get_result_display }}</span>
+                    <span class="text-muted">{{ check.checked_at|date:"d M Y H:i" }}</span>
+                </div>
             {% empty %}
-                <p class="text-muted font-sm mb-0">Not verified yet.</p>
+                <p class="text-muted font-sm mb-0" data-empty-checks>Not verified yet.</p>
             {% endfor %}
+            </div>
+            <div id="verifyResult" class="mt-2" role="status" aria-live="polite"></div>
         </div>
 
         <div class="card-ev p-4">

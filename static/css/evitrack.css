@@ -2529,3 +2529,63 @@ code, pre, kbd, samp {
     break-inside: avoid;
   }
 }
+
+/* ==========================================================================
+   22. UPLOAD, SEARCH PAGE AND DROPDOWN FOOTER
+   ========================================================================== */
+
+.ev-dropzone {
+  border: 2px dashed var(--ev-border);
+  border-radius: var(--ev-radius);
+  padding: 2rem 1.25rem;
+  text-align: center;
+  background: var(--ev-card);
+  cursor: pointer;
+  transition: var(--ev-transition);
+}
+
+.ev-dropzone:hover,
+.ev-dropzone:focus-visible,
+.ev-dropzone.is-dragover {
+  border-color: var(--ev-amber);
+  background: var(--ev-amber-subtle);
+}
+
+.ev-upload-item {
+  padding: 0.75rem 0;
+  border-bottom: 1px solid var(--ev-border-light);
+}
+
+.ev-upload-item.is-failed .progress-bar {
+  background-color: var(--ev-danger);
+}
+
+.ev-upload-item.is-failed [data-role="status"] {
+  color: var(--ev-danger) !important;
+}
+
+.search-results-footer {
+  display: block;
+  padding: 0.6rem 1rem;
+  border-top: 1px solid var(--ev-border);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--ev-navy);
+  text-decoration: none;
+}
+
+.search-results-footer:hover {
+  background: var(--ev-surface);
+}
+
+.search-page-item + .search-page-item {
+  border-top: 1px solid var(--ev-border-light);
+}
+
+.search-page-item a:hover {
+  background: var(--ev-surface);
+}
+
+.search-page-item a:focus-visible {
+  outline-offset: -3px;
+}
