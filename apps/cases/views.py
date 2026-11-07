@@ -1,6 +1,7 @@
 """
 Views for the Cases app: Case listing, creation, updates, detail, assignments, parties, and timeline.
 """
+from datetime import datetime, timezone as dt_timezone
 from typing import Any
 from django.contrib import messages
 from django.contrib.auth import get_user_model
@@ -486,7 +487,7 @@ class CaseTimelineView(LoginRequiredMixin, CaseAccessMixin, View):
 
         # 1. Case Creation Event
         timeline_events.append({
-            'timestamp': timezone.datetime.combine(case.opened_on, timezone.datetime.min.time(), tzinfo=timezone.utc),
+            'timestamp': datetime.combine(case.opened_on, datetime.min.time(), tzinfo=dt_timezone.utc),
             'event_type': 'case_created',
             'title': f'Case Initiated: {case.case_no}',
             'description': f'Case established with priority {case.get_priority_display()} ({case.get_case_type_display()}).',
@@ -571,9 +572,14 @@ class CaseTimelineView(LoginRequiredMixin, CaseAccessMixin, View):
         # Sort chronologically descending
         timeline_events.sort(key=lambda x: x['timestamp'], reverse=True)
 
+        template = (
+            'cases/partials/timeline_content.html'
+            if request.headers.get('x-requested-with') == 'XMLHttpRequest'
+            else 'cases/case_timeline.html'
+        )
         return render(
             request,
-            'cases/partials/timeline_content.html',
+            template,
             {
                 'case': case,
                 'timeline_events': timeline_events,

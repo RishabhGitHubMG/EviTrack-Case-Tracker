@@ -14,10 +14,10 @@ Status legend: **Complete** (works, tested) · **Partial** (code exists, not wir
 
 ## STATUS HEADER (keep current)
 - ANALYSIS DONE: YES (section 1 kept as written; accounts and case-access items re-verified in session 2)
-- Last updated: session 3
-- Session number: 3
+- Last updated: session 4
+- Session number: 4
 - Overall completion: not measured (see checklist, section 3)
-- **NEXT ACTION:** Create `templates/core/dashboard.html` (sidebar and error pages link to it; currently missing), then `notifications`, `reports`, `audit`, `hearings/calendar` and `hearings/task_create|task_update` templates. Then browser-test the golden paths on the dev server (login, case create, upload, verify, custody request). Pytest currently passes 30 tests.
+- **NEXT ACTION:** Custody: add tests for request, accept/reject POST flows and the timeline (templates exist and render). Then notifications: replace the placeholder `notifications` views (plain-text lambdas) with a bell and list template. Then reminders/Celery, reports (PDF), search, audit viewer, `seed_demo`, remaining tests, Docker/README. Browser-test the dashboard, calendar and timeline on the dev server (not done yet; no browser tool used).
 
 ## 1. Phase 0 analysis (baseline as found)
 
@@ -111,17 +111,18 @@ Each row is updated as work is completed. Final state must be **Complete** for e
 | 1 Accounts | Register, approval queue, approve/reject, role change | Partial |
 | 1 Accounts | Login with email OTP (every login), TOTP option, profile, password change | Partial |
 | 1 Accounts | Session timeout (15 min, warning modal), lockout, failed-login view | Partial |
-| 2 Cases | List, filter, sort, create, detail tabs, edit, transitions, assign, parties, timeline | Partial |
+| 2 Cases | List, filter, sort, create, detail tabs, edit, transitions, assign, parties, timeline (full page and AJAX partial) | Partial |
 | 3 Evidence | Upload (drag-drop, progress), versions, preview, download log, verify, bulk verify, metadata, QR | Partial |
 | 4 Custody | Request, accept/reject, timeline, QR label, pending on dashboard | Partial |
-| 5 Hearings | Calendar, hearings CRUD, outcome and next date, tasks CRUD, overdue | Partial |
+| 5 Hearings | Calendar (FullCalendar page), hearings CRUD, outcome and next date, tasks CRUD (create/update templates), overdue | Partial |
 | 6 Notifications | Scheduling, email/SMS/in-app delivery, retry, escalation, idempotent, bell, notification page | Missing |
-| 7 Reports | Dashboard KPIs and charts, PDF exports (5), audit logging | Missing |
+| 7 Reports | Dashboard KPIs and charts, PDF exports (5), audit logging | Partial |
 | 8 Audit | Viewer with filters, CSV export, failed logins, integrity history, security settings, insert-only trigger | Partial |
 | 9 Search | Global search API and dropdown | Missing |
 | UI | Design tokens, dark mode, responsive shell, landing, error pages, login/OTP pages | Partial |
 | Security | CSRF, secure cookies, CSP, HSTS, rate limiting, input validation | Partial |
 | Data | `seed_demo` (roles, cases, evidence incl. one tampered file, custody, hearings, tasks) | Missing |
+| Tests | Route-crawl smoke test: every named no-arg URL and one instance of each detail URL, no 500s or missing templates | Complete |
 | Tests | Hashing, versioning, tamper, custody, IDOR, audit immutability, uploads, reminders, status transitions, OTP/lockout | Missing |
 | Deploy | Dockerfile, docker-compose (web, nginx, postgres, redis, celery worker, beat), `.env.example` | Missing |
 | Docs | README (setup, env, Celery, seed, 5-minute demo, structure) | Partial |
@@ -137,6 +138,7 @@ Each row is updated as work is completed. Final state must be **Complete** for e
 - Demo credentials: none yet (seed not built)
 
 ## 5. SESSION LOG (newest on top)
+- Session 4: added `core/dashboard.html` (role-aware KPIs, Chart.js bar charts from `api/dashboard/charts/`, `static/js/dashboard.js`); added `hearings/calendar.html` (FullCalendar, `static/js/calendar.js`), `task_create`/`task_update` via shared `task_form_base.html`; added case timeline page and partial. Route-crawl smoke test (`apps/core/tests/test_route_smoke.py`) found a `timezone.utc` 500 in the case timeline view (fixed). Tests: core, accounts, cases, evidence pass.
 - Session 3: templates added for accounts (login, OTP verify, password change, profile, OTP setup, user list, approval queue, failed logins), cases (list, detail with tabs, create/edit form, party form and delete) and evidence (list, upload, detail, update, QR label); shared partials and `auth_base.html`. Fixed: `CaseAccessMixin` call sites in cases, evidence and evidence API now use module helpers (some edits had not persisted and were reapplied); evidence detail `item.versions` changed to `newer_versions`; evidence tag filter uses `evidence_items`; `self.check_case_access` calls in cases views replaced. Pytest: 30 pass. Not yet browser-tested; verify flow is fetch-based.
 - Session 2: merged the new RULES, status header, run notes and log into this file; checklist rows updated from verified runs only. Case-access call sites repointed to module helpers; error and landing templates use `core:dashboard` and `core:landing`. Added `apps/cases/tests/test_case_access.py` (4 pass) and `apps/accounts/tests/test_pages.py` (8 pass, 1 fails: `accounts/login.html` missing).
 - Session 1 (earlier): baseline analysis written (section 1).
