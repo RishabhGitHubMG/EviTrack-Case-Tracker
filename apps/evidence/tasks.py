@@ -4,7 +4,10 @@ Celery asynchronous tasks for Evidence processing and bulk integrity verificatio
 import logging
 from celery import shared_task
 from django.contrib.auth import get_user_model
+from django.urls import reverse
 from django.utils import timezone
+
+from apps.notifications.services import create_notification
 
 logger = logging.getLogger(__name__)
 
@@ -54,12 +57,11 @@ def verify_case_evidence_task(self, case_id: int, user_id: int | None = None) ->
 
             # Send critical alert notification
             if user:
-                Notification.objects.create(
-                    recipient=user,
-                    title=f"INTEGRITY BREACH: {evidence.evidence_no}",
-                    message=f"Evidence {evidence.evidence_no} failed SHA-256 verification in Case {case.case_no}.",
-                    level=Notification.Level.DANGER,
-                    case=case,
+                create_notification(
+                    user=user,
+                    message=f"INTEGRITY BREACH: Evidence {evidence.evidence_no} failed SHA-256 verification in Case {case.case_no}.",
+                    link=reverse('evidence:evidence_detail', kwargs={'pk': evidence.pk}),
+                    notification_type=Notification.NotificationType.DANGER,
                 )
 
             log_action(

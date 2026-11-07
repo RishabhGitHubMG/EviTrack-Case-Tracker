@@ -32,6 +32,7 @@ from apps.evidence.services import (
     verify_evidence_integrity,
 )
 from apps.notifications.models import Notification
+from apps.notifications.services import create_notification
 
 
 class EvidenceListView(LoginRequiredMixin, ListView):
@@ -400,12 +401,11 @@ class EvidenceVerifyView(LoginRequiredMixin, View):
             evidence.save(update_fields=['status'])
 
             # Send alert notification
-            Notification.objects.create(
-                recipient=request.user,
-                title=f"INTEGRITY ALERT: {evidence.evidence_no}",
-                message=f"Evidence {evidence.evidence_no} failed integrity check. Computed hash: {computed_hash}.",
-                level=Notification.Level.DANGER,
-                case=evidence.case,
+            create_notification(
+                user=request.user,
+                message=f"INTEGRITY ALERT: Evidence {evidence.evidence_no} failed integrity check.",
+                link=reverse('evidence:evidence_detail', kwargs={'pk': evidence.pk}),
+                notification_type=Notification.NotificationType.DANGER,
             )
 
             log_action(

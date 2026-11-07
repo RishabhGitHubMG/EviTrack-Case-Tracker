@@ -1,12 +1,12 @@
-"""
-URL configuration for notifications app.
-"""
-from django.http import HttpResponse
 from django.urls import path
+
+from apps.notifications import views
 
 app_name = 'notifications'
 
 urlpatterns = [
-    path('', lambda r: HttpResponse('Notifications'), name='notification_list'),
-    path('<int:pk>/', lambda r, pk: HttpResponse(f'Notification {pk}'), name='notification_detail'),
+    path('', views.NotificationListView.as_view(), name='notification_list'),
+    path('mark-all-read/', views.NotificationMarkAllReadView.as_view(), name='notification_mark_all_read'),
+    path('<int:pk>/', views.NotificationOpenView.as_view(), name='notification_detail'),
+    path('<int:pk>/read/', views.NotificationMarkReadView.as_view(), name='notification_mark_read'),
 ]
