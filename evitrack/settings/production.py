@@ -41,6 +41,13 @@ else:
         }
     }
 
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.redis.RedisCache',
+        'LOCATION': os.environ.get('EVITRACK_CACHE_URL', os.environ.get('REDIS_URL', 'redis://localhost:6379/1')),
+    }
+}
+
 # Security hardening settings
 SECURE_SSL_REDIRECT = os.environ.get('SECURE_SSL_REDIRECT', 'True').lower() in ('true', '1', 't')
 SECURE_HSTS_SECONDS = int(os.environ.get('SECURE_HSTS_SECONDS', 31536000))  # 1 year
@@ -57,7 +64,7 @@ CSRF_COOKIE_HTTPONLY = True
 # Browser protections
 SECURE_BROWSER_XSS_FILTER = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
-X_FRAME_OPTIONS = 'SAMEORIGIN'
+X_FRAME_OPTIONS = 'DENY'
 
 # Production Email (SMTP)
 if os.environ.get('EMAIL_HOST'):

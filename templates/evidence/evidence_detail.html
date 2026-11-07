@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 
+{% load static %}
 {% block title %}{{ evidence.evidence_no }} - EviTrack{% endblock %}
 {% block breadcrumbs %}
 <li><a href="{% url 'evidence:evidence_list' %}">Evidence Vault</a></li>
@@ -84,15 +85,5 @@
 {% endblock %}
 
 {% block extra_js %}
-<script>
-document.getElementById('verifyForm').addEventListener('submit', function (event) {
-    event.preventDefault();
-    var form = event.currentTarget;
-    var token = form.querySelector('[name=csrfmiddlewaretoken]').value;
-    fetch(form.action, {method: 'POST', headers: {'X-CSRFToken': token}, credentials: 'same-origin'})
-        .then(function (response) { return response.json(); })
-        .then(function () { window.location.reload(); })
-        .catch(function () { window.location.reload(); });
-});
-</script>
+<script src="{% static 'js/evidence-detail.js' %}"></script>
 {% endblock %}

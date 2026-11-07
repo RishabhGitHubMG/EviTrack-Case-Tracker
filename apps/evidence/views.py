@@ -19,6 +19,7 @@ from django.views import View
 from django.views.generic import DetailView, ListView, UpdateView
 
 from apps.accounts.mixins import ReadOnlyMixin, check_case_access, get_user_accessible_cases
+from apps.core.rate_limit import is_rate_limited
 from apps.audit.services import log_action
 from apps.cases.models import Case
 from apps.custody.models import CustodyEvent
@@ -133,6 +134,14 @@ class EvidenceUploadView(LoginRequiredMixin, ReadOnlyMixin, View):
         )
 
     def post(self, request: HttpRequest, case_id: int | None = None) -> HttpResponse:
+        if is_rate_limited(
+            request,
+            'evidence-upload',
+            settings.EVIDENCE_UPLOAD_RATE_LIMIT,
+            settings.EVIDENCE_UPLOAD_RATE_WINDOW_SECONDS,
+        ):
+            return HttpResponse('Too many upload attempts. Try again later.', status=429)
+
         target_case_id = case_id or request.POST.get('case_id')
         if not target_case_id:
             messages.error(request, "Please designate a case for this evidence upload.")

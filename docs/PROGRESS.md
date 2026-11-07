@@ -14,10 +14,10 @@ Status legend: **Complete** (works, tested) · **Partial** (code exists, not wir
 
 ## STATUS HEADER (keep current)
 - ANALYSIS DONE: YES (section 1 kept as written; accounts and case-access items re-verified in session 2)
-- Last updated: session 8
-- Session number: 8
+- Last updated: session 10
+- Session number: 10
 - Overall completion: not measured (see checklist, section 3)
-- **NEXT ACTION:** Step 2: implement global search in the header with `/` shortcut, grouped permission-filtered results, and tests. Then security hardening (audit immutability, CSP/HSTS, auth/upload rate limits, deploy checks), UI persistence/error/print checks, Docker and README, and final QA. Browser-check authenticated pages when a browser tool can complete the OTP login form.
+- **NEXT ACTION:** Step 2: finish UI leftovers: verify dark-mode persistence per user, print styles, 403/404/500 rendering, the session-timeout warning modal, and profile/change-password flows; run responsive checks on key pages. Then Docker/evidence X-Accel setup, `.env.example`, README/demo/future-scope docs, and final status reconciliation/QA. Browser-test authenticated flows when OTP login can be completed in the preview.
 
 ## 1. Phase 0 analysis (baseline as found)
 
@@ -43,8 +43,8 @@ Deviations from spec: `django-otp` not used (pyotp TOTP only, OTP is optional pe
 | 5 | Hearings & Deadlines | Partial | Services and views exist and import. URLs are placeholders. Templates exist for hearing list/create/detail/update and task list. Missing: `task_create`, `task_update`, calendar page. `CalendarEventsAPIView` reverses `hearings:task_update`, which is not routed. |
 | 6 | Reminders & Notifications | Partial | Celery Beat scanner sends due email/in-app/mock-SMS reminders, persists idempotent delivery state, retries with exponential backoff (3 attempts), and escalates delivery failures and overdue tasks to case managers. Schedule defaults and notification UI exist. Email tamper alerts and a live Celery/Redis run remain unverified. |
 | 7 | Reports & Dashboard | Partial | Dashboard KPIs/charts exist. Five case-scoped WeasyPrint PDFs now include generated-by/date footers and audit events; report permission and PDF tests pass. Authenticated pages not browser-tested. |
-| 8 | Audit & Security | Partial | `AuditLog` has a SHA-256 hash chain and `verify_chain`; admin viewer filters by user/action/date/case, personal activity is access-filtered, and CSV export is implemented and tested. Immutability remains ORM-only; DB trigger, security settings, CSP/HSTS middleware and rate limiting remain. |
-| 9 | Global search | Missing | JS calls `/cases/api/search/`, which does not exist. |
+| 8 | Audit & Security | Partial | Admin viewer/CSV and hash-chain verify action are implemented and tested. ORM/queryset/admin protections plus SQLite and PostgreSQL append-only triggers are implemented; SQLite raw-write tests pass, PostgreSQL not live-tested. CSP, production HSTS, auth/upload rate limits and `check --deploy` are implemented/tested. |
+| 9 | Global search | Partial | `/api/search/` returns grouped case, party and evidence results (case-scoped by the shared permission queryset; evidence search includes number, title, tags and SHA-256). Tests confirm no inaccessible-case results. Header input is wired to the API and the `/` shortcut is present, but authenticated browser interaction remains unverified. |
 
 ### Data model (12 core tables)
 Present: user, case, case_assignment, party, evidence, custody_event, integrity_check, hearing, task, reminder, notification, audit_log (plus `evidence_tag`).
@@ -113,7 +113,7 @@ Each row is updated as work is completed. Final state must be **Complete** for e
 | Foundation | Data model: 12 tables with indexes and constraints | Partial |
 | Foundation | Services layer (hashing, custody, reminders) and thin views | Partial |
 | Foundation | Evidence storage outside web root, served via authenticated audit-logged view | Partial |
-| Audit | Hash chain with verify action (exists in code, not yet tested) | Partial |
+| Audit | Hash chain with verify action and database immutability | Partial (admin verify action, ORM/queryset protection and SQLite triggers tested; PostgreSQL trigger not live-tested) |
 | UI | Print styles | Missing |
 | 1 Accounts | Register, approval queue, approve/reject, role change | Partial |
 | 1 Accounts | Login with email OTP (every login), TOTP option, profile, password change | Complete for OTP flow (email plus optional additional TOTP and lockout tests pass; browser not tested); profile/password flows remain partial |
@@ -125,12 +125,12 @@ Each row is updated as work is completed. Final state must be **Complete** for e
 | 6 Notifications | Scheduling, email/SMS/in-app delivery, retry, escalation, idempotent, bell, notification page | Partial (default schedule, email/in-app/mock-SMS delivery, deduplication, retry/backoff, failure and overdue escalation tested; bell/count/list/mark-read tested; email tamper alerts and live Celery/Redis not verified) |
 | 7 Reports | Dashboard KPIs and charts, PDF exports (5), audit logging | Partial (dashboard exists; five case-scoped PDFs are implemented, audit-logged, and tested; not browser-tested) |
 | 8 Audit | Viewer with filters, CSV export, failed logins, integrity history, security settings, insert-only trigger | Partial (user/action/date/case filters and CSV export tested; other listed features remain) |
-| 9 Search | Global search API and dropdown | Missing |
+| 9 Search | Global search API and dropdown | Partial (grouped permission-filtered API and search input tested; authenticated dropdown and `/` shortcut not browser-tested) |
 | UI | Design tokens, dark mode, responsive shell, landing, error pages, login/OTP pages | Partial |
-| Security | CSRF, secure cookies, CSP, HSTS, rate limiting, input validation | Partial |
+| Security | CSRF, secure cookies, CSP, HSTS, rate limiting, input validation | Partial (CSP, production HSTS, login/OTP/upload throttles and deploy check pass; audit trigger tested on SQLite but not live PostgreSQL; input validation review remains) |
 | Data | `seed_demo` (roles, cases, evidence incl. one tampered file, custody, hearings, tasks) | Complete (7 pytest; run on dev DB) |
 | Tests | Route-crawl smoke test: every named no-arg URL and one instance of each detail URL, no 500s, placeholders, plain-text or non-template 200s | Complete (strict crawl passed with empty placeholder allowlist) |
-| Tests | Hashing, versioning, tamper, custody, IDOR, audit immutability, uploads, reminders, status transitions, OTP/lockout, report permissions | Partial (custody, notifications, tamper alerts, reminders, OTP/lockout, audit filters/export, five PDF reports and report access, route crawl, and seed covered; remaining cases missing) |
+| Tests | Hashing, versioning, tamper, custody, IDOR, audit immutability, uploads, reminders, status transitions, OTP/lockout, report permissions, global search | Partial (custody, notifications, tamper alerts, reminders, OTP/lockout, audit filters/export/verify, SQLite audit triggers, auth/upload rate limits, five PDF reports and report access, grouped search/access, route crawl, and seed covered; remaining cases missing) |
 | Deploy | Dockerfile, docker-compose (web, nginx, postgres, redis, celery worker, beat), `.env.example` | Missing |
 | Docs | README (setup, env, Celery, seed, 5-minute demo, structure) | Partial |
 | QA | `manage.py check --deploy`, full test run, responsive check mobile/tablet/desktop | Missing |
@@ -140,12 +140,16 @@ Each row is updated as work is completed. Final state must be **Complete** for e
 - Migrate: `python manage.py migrate`
 - Seed: `python manage.py seed_demo` (idempotent; prints credentials; re-seed on a fresh DB)
 - Run app: `python manage.py runserver` (settings: `evitrack.settings.development`)
-- Run Redis, then start the worker with `celery -A evitrack worker -l info` and Beat with `celery -A evitrack beat -l info`; live Celery/Redis remains unverified. Development email uses Django's console backend (OTP code is printed to the console); tests use locmem email. SMS uses a mock logger gateway.
+- Run Redis, then start the worker with `celery -A evitrack worker -l info` and Beat with `celery -A evitrack beat -l info`; live Celery/Redis remains unverified. Production cache-backed rate limits use `EVITRACK_CACHE_URL` or `REDIS_URL`. Development email uses Django's console backend (OTP code is printed to the console); tests use locmem email. SMS uses a mock logger gateway.
 - Audit viewer: `/audit/` (admin only); personal activity: `/audit/my-activity/`; filtered CSV: use Export CSV on the audit page. Reports: `/reports/` lists the five PDFs for accessible cases; every generated report is audit-logged.
+- Global search: use the authenticated header box (minimum two characters); results are grouped into cases, parties and evidence, restricted to accessible cases.
 - Run tests: `.venv/bin/python -m pytest` (uses `evitrack.settings.test` from `pytest.ini`)
+- Run deployment checks with production settings: `EVITRACK_SECRET_KEY=<secret> ALLOWED_HOSTS=<host> python manage.py check --deploy --settings=evitrack.settings.production`.
 - Demo credentials: `admin@`, `manager@`, `investigator@`, `custodian@`, `reviewer@demo.evitrack.test`, password `Demo#Pass2026`. `pending@demo.evitrack.test` cannot sign in (awaiting approval).
 
 ## 5. SESSION LOG (newest on top)
+- Session 10: added SQLite/PostgreSQL audit update/delete triggers and queryset/admin protection; added tested admin hash-chain verification. Rate-limited login, OTP verification and evidence upload using a shared cache (Redis-backed in production). Confirmed CSP headers and moved three inline scripts to external assets; production HSTS/X-Frame settings and `check --deploy` now pass cleanly. Full suite: 106 passed. SQLite trigger tests pass; live PostgreSQL trigger and browser flows were not tested. Next: UI leftovers.
+- Session 9: implemented grouped global search for cases, parties, and evidence by evidence number/title/tag/SHA-256, scoped to the user's accessible cases. Added tests for all categories, hash/number search, inaccessible-case exclusion, unauthenticated access, short queries and header markup. Full suite: 97 passed. Preview `/dashboard/` redirected to OTP login, so authenticated search dropdown and `/` keypress were not browser-tested. Next: DB-level audit immutability and security hardening.
 - Session 8: implemented admin audit viewer filters (user/action/date/case), personal access-filtered activity, and filtered CSV export. Implemented five case-scoped WeasyPrint PDFs with generated-by/date footer and report-generation audit events. All five reports return PDF and inaccessible cases return 404; route crawl passes with an empty placeholder allowlist. Full suite: 92 passed (WeasyPrint reports one HarfBuzz-Subset deprecation warning). Authenticated pages were not browser-tested. Next: global search.
 - Session 7: all password logins now require a short-lived hashed email OTP; users with TOTP enabled complete an additional authenticator step. Added persistent attempt tracking and a 15-minute lock after five invalid codes, plus an additive `EmailOTPChallenge` migration. Tests cover email OTP, additional TOTP, expiry, lockout and blocking new code sends during lockout. Full suite: 76 passed; migration check reports no changes. Not browser-tested; live development console delivery was not manually exercised. Next: audit viewer and five audit-logged PDF reports.
 - Session 6: reminders: implemented the Beat scanner for due email, in-app and mock-SMS delivery; fire-time deduplication; persisted retries with 5/10-minute exponential delays and a 3-attempt cap; terminal failure and overdue-task email/in-app escalation. Added five reminder tests covering default offsets, channel delivery, idempotency, backoff, escalation and overdue transition. Full suite: 72 passed. Not verified: running Celery Beat/worker with Redis, browser flows or actual external SMS delivery; SMS is intentionally mock-only. Next: email OTP on every login.

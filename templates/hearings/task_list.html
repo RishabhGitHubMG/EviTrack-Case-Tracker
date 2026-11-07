@@ -224,47 +224,8 @@
     </div>
 </div>
 
-<!-- AJAX Status update script -->
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-    const statusSelects = document.querySelectorAll('.task-status-select');
-    statusSelects.forEach(select => {
-        select.addEventListener('change', function () {
-            const taskId = this.dataset.taskId;
-            const newStatus = this.value;
-            const csrfToken = '{{ csrf_token }}';
+{% endblock %}
 
-            fetch(`/hearings/tasks/${taskId}/status/`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                    'X-CSRFToken': csrfToken,
-                    'X-Requested-With': 'XMLHttpRequest'
-                },
-                body: `status=${encodeURIComponent(newStatus)}`
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) {
-                    const row = document.getElementById(`task-row-${taskId}`);
-                    if (row) {
-                        const titleEl = row.querySelector('.fw-semibold');
-                        if (data.is_completed) {
-                            titleEl.classList.add('text-decoration-line-through', 'text-muted');
-                        } else {
-                            titleEl.classList.remove('text-decoration-line-through', 'text-muted');
-                        }
-                    }
-                } else {
-                    alert(data.error || 'Failed to update task status.');
-                }
-            })
-            .catch(err => {
-                console.error(err);
-                alert('An error occurred updating the task status.');
-            });
-        });
-    });
-});
-</script>
+{% block extra_js %}
+<script src="{% static 'js/task-status.js' %}"></script>
 {% endblock %}

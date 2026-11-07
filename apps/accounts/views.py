@@ -34,6 +34,7 @@ from axes.models import AccessAttempt, AccessFailureLog
 from axes.utils import reset as axes_reset
 
 from apps.accounts.models import EmailOTPChallenge
+from apps.core.rate_limit import is_rate_limited
 from apps.accounts.forms import (
     LoginForm,
     OTPSetupForm,
@@ -102,6 +103,10 @@ class LoginView(FormView):
     def dispatch(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
         if request.user.is_authenticated:
             return redirect(settings.LOGIN_REDIRECT_URL)
+        if request.method == 'POST' and is_rate_limited(
+            request, 'login', settings.AUTH_LOGIN_RATE_LIMIT, settings.AUTH_LOGIN_RATE_WINDOW_SECONDS
+        ):
+            return HttpResponse('Too many login attempts. Try again later.', status=429)
         return super().dispatch(request, *args, **kwargs)
 
     def get_success_url(self) -> str:
@@ -169,6 +174,10 @@ class OTPVerifyView(FormView):
     def dispatch(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
         if request.user.is_authenticated:
             return redirect(settings.LOGIN_REDIRECT_URL)
+        if request.method == 'POST' and is_rate_limited(
+            request, 'otp-verify', settings.OTP_VERIFY_RATE_LIMIT, settings.OTP_VERIFY_RATE_WINDOW_SECONDS
+        ):
+            return HttpResponse('Too many verification attempts. Try again later.', status=429)
 
         pre_otp_user_id = request.session.get('pre_otp_user_id')
         if not pre_otp_user_id:
