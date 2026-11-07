@@ -1,6 +1,3 @@
-"""
-URL routing configuration for the Cases module.
-"""
 from django.urls import path
 from apps.cases import views
 
@@ -17,7 +14,4 @@ urlpatterns = [
     path('<int:pk>/parties/<int:party_id>/edit/', views.PartyUpdateView.as_view(), name='party_update'),
     path('<int:pk>/parties/<int:party_id>/delete/', views.PartyDeleteView.as_view(), name='party_delete'),
     path('<int:pk>/timeline/', views.CaseTimelineView.as_view(), name='case_timeline'),
-    # Aliases for dashboard and task list navigation
-    path('dashboard/', views.CaseListView.as_view(), name='dashboard'),
-    path('tasks/', views.CaseListView.as_view(), name='task_list'),
 ]

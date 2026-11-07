@@ -11,7 +11,7 @@
         <nav aria-label="breadcrumb">
             <ol class="topbar-breadcrumbs mb-0">
                 <li>
-                    <a href="{% url 'cases:dashboard' %}" title="Dashboard">
+                    <a href="{% url 'core:dashboard' %}" title="Dashboard">
                         <i class="bi bi-house-door"></i>
                     </a>
                 </li>
@@ -57,11 +57,11 @@
                     {% if recent_notifications %}
                         {% for notif in recent_notifications %}
                             <a href="{% url 'notifications:notification_detail' notif.pk %}" class="notification-item {% if not notif.is_read %}unread{% endif %}">
-                                <div class="notification-item-icon {% if notif.level == 'warning' %}warning{% elif notif.level == 'danger' %}danger{% endif %}">
-                                    <i class="bi {% if notif.level == 'danger' %}bi-shield-slash{% elif notif.level == 'warning' %}bi-exclamation-triangle{% else %}bi-info-circle{% endif %}"></i>
+                                <div class="notification-item-icon {% if notif.notification_type == 'warning' %}warning{% elif notif.notification_type == 'danger' %}danger{% endif %}">
+                                    <i class="bi {% if notif.notification_type == 'danger' %}bi-shield-slash{% elif notif.notification_type == 'warning' %}bi-exclamation-triangle{% else %}bi-info-circle{% endif %}"></i>
                                 </div>
                                 <div class="notification-item-content">
-                                    <div class="notification-item-title">{{ notif.title }}</div>
+                                    <div class="notification-item-title">{{ notif.message|truncatechars:90 }}</div>
                                     <div class="notification-item-time" data-relative-time="{{ notif.created_at|date:'c' }}">{{ notif.created_at|timesince }} ago</div>
                                 </div>
                             </a>

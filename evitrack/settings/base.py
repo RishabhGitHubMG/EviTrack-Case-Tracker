@@ -60,6 +60,7 @@ FORM_RENDERER = 'django.forms.renderers.TemplatesSetting'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'apps.core.middleware.SecurityHeadersMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -248,6 +249,28 @@ REMINDER_DEFAULTS = {
     'deadline_reminders': [3 * 24 * 60, 24 * 60],        # 3 days, 1 day
 }
 
-# Content Security Policy (CSP) headers:
-# In development, CSP can be disabled or relaxed.
-# Strict CSP headers are configured and enforced in production (settings/production.py).
+EVIDENCE_USE_X_ACCEL = os.environ.get('EVIDENCE_USE_X_ACCEL', 'False').lower() in ('true', '1', 't', 'yes')
+EVIDENCE_X_ACCEL_LOCATION = '/protected-evidence/'
+
+EMAIL_OTP_TTL_MINUTES = 10
+EMAIL_OTP_MAX_ATTEMPTS = 5
+
+REMINDER_MAX_ATTEMPTS = 3
+REMINDER_BACKOFF_BASE_MINUTES = 5
+
+SMS_GATEWAY_BACKEND = 'apps.notifications.gateways.ConsoleSMSGateway'
+
+EVITRACK_CSP = {
+    'default-src': ["'self'"],
+    'script-src': ["'self'", 'https://cdn.jsdelivr.net'],
+    'style-src': ["'self'", "'unsafe-inline'", 'https://cdn.jsdelivr.net', 'https://fonts.googleapis.com'],
+    'font-src': ["'self'", 'data:', 'https://cdn.jsdelivr.net', 'https://fonts.gstatic.com'],
+    'img-src': ["'self'", 'data:', 'blob:'],
+    'media-src': ["'self'", 'blob:'],
+    'frame-src': ["'self'"],
+    'connect-src': ["'self'"],
+    'object-src': ["'none'"],
+    'base-uri': ["'self'"],
+    'form-action': ["'self'"],
+    'frame-ancestors': ["'self'"],
+}

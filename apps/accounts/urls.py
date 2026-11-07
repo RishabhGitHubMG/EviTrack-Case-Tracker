@@ -1,16 +1,24 @@
-"""
-URL configuration for accounts app.
-"""
-from django.http import HttpResponse
 from django.urls import path
+from django.views.generic import RedirectView
+
+from apps.accounts import views
 
 app_name = 'accounts'
 
 urlpatterns = [
-    path('login/', lambda r: HttpResponse('Login'), name='login'),
-    path('logout/', lambda r: HttpResponse('Logout'), name='logout'),
-    path('users/', lambda r: HttpResponse('User Directory'), name='user_list'),
-    path('profile/', lambda r: HttpResponse('User Profile'), name='profile'),
-    path('preferences/', lambda r: HttpResponse('User Preferences'), name='preferences'),
-    path('security/', lambda r: HttpResponse('Security Settings'), name='security_settings'),
+    path('login/', views.LoginView.as_view(), name='login'),
+    path('logout/', views.LogoutView.as_view(), name='logout'),
+    path('register/', views.RegisterView.as_view(), name='register'),
+    path('otp/', views.OTPVerifyView.as_view(), name='otp_verify'),
+    path('profile/', views.ProfileView.as_view(), name='profile'),
+    path('preferences/', RedirectView.as_view(pattern_name='accounts:profile'), name='preferences'),
+    path('password/', views.PasswordChangeView.as_view(), name='password_change'),
+    path('security/otp/', views.OTPSetupView.as_view(), name='otp_setup'),
+    path('users/', views.UserListView.as_view(), name='user_list'),
+    path('users/approvals/', views.UserApprovalView.as_view(), name='user_approval'),
+    path('users/<int:pk>/approve/', views.ApproveUserView.as_view(), name='user_approve'),
+    path('users/<int:pk>/reject/', views.RejectUserView.as_view(), name='user_reject'),
+    path('users/<int:pk>/role/', views.UserRoleChangeView.as_view(), name='user_role'),
+    path('failed-logins/', views.FailedLoginListView.as_view(), name='failed_logins'),
+    path('security/', RedirectView.as_view(pattern_name='accounts:otp_setup'), name='security_settings'),
 ]
