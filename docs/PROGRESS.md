@@ -2,6 +2,23 @@
 
 Status legend: **Complete** (works, tested) · **Partial** (code exists, not wired or incomplete) · **Broken** (code exists but fails at runtime) · **Missing** (not present).
 
+## 0. RULES FOR THE AI (read first, every session)
+1. Read this file at session start. Do not re-scan the whole repo.
+2. Go to **NEXT ACTION** in the status header, do it, then continue down the checklist in section 3.
+3. Update this file after every small unit of work (one feature, one fix, one test file). Change the status, rewrite NEXT ACTION, add one line to the Session Log.
+4. Commit and push after every update to the working branch (never `main`). Push only when the user has authorized it for this project.
+5. Keep chat replies to 1-3 lines. No code or log dumps in chat.
+6. Keep what works. No rewrites, no deleting working code or migrations. Add new migrations, do not edit applied ones.
+7. Never mark an item Complete unless it was run and worked.
+8. Do not ask the user questions. Decide, record the decision in section 2, continue.
+
+## STATUS HEADER (keep current)
+- ANALYSIS DONE: YES (section 1 kept as written; accounts and case-access items re-verified in session 2)
+- Last updated: session 2
+- Session number: 2
+- Overall completion: not measured (see checklist, section 3)
+- **NEXT ACTION:** Create the missing account templates so `apps/accounts/tests/test_pages.py` passes: `accounts/login.html` first, then `otp_verify`, `profile`, `password_change`, `otp_setup`, `user_list`, `user_approval`, `failed_logins`. Then create the case templates (list, detail, form, timeline) and run `pytest`.
+
 ## 1. Phase 0 analysis (baseline as found)
 
 ### Verification performed
@@ -72,15 +89,23 @@ Gaps: `Notification` has no `title`, `level` or `case`. Reminder `dedup_key` omi
 - Evidence downloads use `FileResponse` in development and X-Accel-Redirect when `EVIDENCE_USE_X_ACCEL` is enabled.
 - Audit immutability is enforced in three layers: model `save`/`delete`, Django admin (read-only), and a DB trigger (PostgreSQL and SQLite).
 
+- Case-access call sites use the module functions in `apps/accounts/mixins.py` (`check_case_access`, `require_case_access`, `get_user_accessible_cases`). No static shim methods were added to `CaseAccessMixin`.
+- Error pages and landing link to `core:dashboard` and `core:landing`, not `cases:dashboard`.
+
 ## 3. Checklist (live)
 
 Each row is updated as work is completed. Final state must be **Complete** for every row.
 
 | Area | Item | Status |
 |------|------|--------|
-| Foundation | pytest config, test settings, shared fixtures | Missing |
-| Foundation | Accounts URL routing | Broken |
-| Foundation | Case access helpers and Case Manager scope | Broken |
+| Foundation | pytest config, test settings, shared fixtures | Partial |
+| Foundation | Accounts URL routing | Partial |
+| Foundation | Case access helpers and Case Manager scope | Complete |
+| Foundation | Data model: 12 tables with indexes and constraints | Partial |
+| Foundation | Services layer (hashing, custody, reminders) and thin views | Partial |
+| Foundation | Evidence storage outside web root, served via authenticated audit-logged view | Partial |
+| Audit | Hash chain with verify action (exists in code, not yet tested) | Partial |
+| UI | Print styles | Missing |
 | 1 Accounts | Register, approval queue, approve/reject, role change | Broken |
 | 1 Accounts | Login with email OTP (every login), TOTP option, profile, password change | Broken |
 | 1 Accounts | Session timeout (15 min, warning modal), lockout, failed-login view | Partial |
@@ -99,3 +124,16 @@ Each row is updated as work is completed. Final state must be **Complete** for e
 | Deploy | Dockerfile, docker-compose (web, nginx, postgres, redis, celery worker, beat), `.env.example` | Missing |
 | Docs | README (setup, env, Celery, seed, 5-minute demo, structure) | Partial |
 | QA | `manage.py check --deploy`, full test run, responsive check mobile/tablet/desktop | Missing |
+
+## 4. HOW TO RUN
+- Install: `pip install -r requirements/dev.txt` (a `.venv` already exists in the repo)
+- Migrate: `python manage.py migrate`
+- Seed: not built yet (`seed_demo` is Missing)
+- Run app: `python manage.py runserver` (settings: `evitrack.settings.development`)
+- Run Celery and Redis: not verified in session 2
+- Run tests: `.venv/bin/python -m pytest` (uses `evitrack.settings.test` from `pytest.ini`)
+- Demo credentials: none yet (seed not built)
+
+## 5. SESSION LOG (newest on top)
+- Session 2: merged the new RULES, status header, run notes and log into this file; checklist rows updated from verified runs only. Case-access call sites repointed to module helpers; error and landing templates use `core:dashboard` and `core:landing`. Added `apps/cases/tests/test_case_access.py` (4 pass) and `apps/accounts/tests/test_pages.py` (8 pass, 1 fails: `accounts/login.html` missing).
+- Session 1 (earlier): baseline analysis written (section 1).

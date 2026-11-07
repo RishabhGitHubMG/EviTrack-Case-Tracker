@@ -18,7 +18,7 @@ from django.utils import timezone
 from django.views import View
 from django.views.generic import DetailView, ListView, UpdateView
 
-from apps.accounts.mixins import CaseAccessMixin, ReadOnlyMixin
+from apps.accounts.mixins import ReadOnlyMixin, check_case_access, get_user_accessible_cases
 from apps.audit.services import log_action
 from apps.cases.models import Case
 from apps.custody.models import CustodyEvent
