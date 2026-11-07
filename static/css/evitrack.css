@@ -1637,6 +1637,8 @@ code, pre, kbd, samp {
 
 .timeline-content {
   flex: 1 1 auto;
+  min-width: 0;
+  overflow-wrap: anywhere;
   margin-left: 1.5rem;
   background: var(--ev-card);
   border: 1px solid var(--ev-border);
@@ -2339,6 +2341,13 @@ code, pre, kbd, samp {
   font-family: var(--ev-font-sans);
 }
 
+@media (max-width: 575.98px) {
+  .fc .fc-toolbar {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+}
+
 .fc .fc-toolbar-title {
   font-family: var(--ev-font-serif);
   font-size: 1.35rem;
@@ -2461,6 +2470,27 @@ code, pre, kbd, samp {
 @keyframes slideUp {
   from { opacity: 0; transform: translateY(12px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+:focus-visible {
+  outline: 3px solid var(--ev-amber);
+  outline-offset: 2px;
+}
+
+@media (max-width: 575.98px) {
+  .timeline-marker {
+    width: 44px;
+    height: 44px;
+  }
+
+  .timeline-v::before {
+    left: 21px;
+  }
+
+  .timeline-content {
+    margin-left: 0.85rem;
+    padding: 1rem;
+  }
 }
 
 /* ==========================================================================

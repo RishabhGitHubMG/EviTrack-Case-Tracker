@@ -10,7 +10,7 @@
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4 d-print-none">
     <h1 class="page-title mb-0">QR Label</h1>
-    <button type="button" class="btn btn-ev-primary btn-sm" onclick="window.print()"><i class="bi bi-printer"></i> Print</button>
+    <button type="button" class="btn btn-ev-primary btn-sm" data-action="print"><i class="bi bi-printer"></i> Print</button>
 </div>
 <div class="card-ev p-4 evidence-qr-label" style="max-width: 360px;">
     <img src="{{ qr_image_url }}" alt="QR code linking to {{ evidence.evidence_no }}" width="180" height="180">

@@ -13,7 +13,7 @@
         <p class="mb-3"><span class="badge-ev badge-success">Enabled</span> Sign-in also requires an authenticator code.</p>
     {% else %}
         <p class="mb-2">Scan this QR code with your authenticator app, or enter the key manually.</p>
-        <img src="data:image/png;base64,{{ qr_code_b64 }}" alt="Authenticator QR code" width="200" height="200" class="mb-2">
+        <img src="{{ qr_code_b64 }}" alt="Authenticator QR code" width="200" height="200" class="mb-2">
         <p class="font-sm mb-3"><code>{{ formatted_secret }}</code></p>
     {% endif %}
     <form method="post" action="{% url 'accounts:otp_setup' %}" novalidate>

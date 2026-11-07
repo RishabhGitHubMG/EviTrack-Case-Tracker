@@ -315,6 +315,24 @@ class EvidenceDetailView(LoginRequiredMixin, DetailView):
         return context
 
 
+def _evidence_file_response(file_path: Path, *, as_attachment: bool, filename: str, content_type: str) -> HttpResponse:
+    response = FileResponse(
+        open(file_path, 'rb'),
+        as_attachment=as_attachment,
+        filename=filename,
+        content_type=content_type,
+    )
+    if not settings.EVIDENCE_USE_X_ACCEL:
+        return response
+
+    response.file_to_stream.close()
+    relative = Path(file_path).resolve().relative_to(Path(settings.EVIDENCE_ROOT).resolve())
+    accel = HttpResponse(headers=response.headers)
+    del accel['Content-Length']
+    accel['X-Accel-Redirect'] = f"{settings.EVIDENCE_X_ACCEL_LOCATION}{relative.as_posix()}"
+    return accel
+
+
 class EvidenceDownloadView(LoginRequiredMixin, View):
     """
     Secure file streaming download directly from outside the web root.
@@ -345,14 +363,12 @@ class EvidenceDownloadView(LoginRequiredMixin, View):
             },
         )
 
-        # Stream file response
-        response = FileResponse(
-            open(file_path, 'rb'),
+        return _evidence_file_response(
+            file_path,
             as_attachment=True,
             filename=evidence.original_filename,
             content_type=evidence.mime_type or 'application/octet-stream',
         )
-        return response
 
 
 class EvidencePreviewView(LoginRequiredMixin, View):
@@ -370,13 +386,12 @@ class EvidencePreviewView(LoginRequiredMixin, View):
         if not file_path.exists() or not file_path.is_file():
             raise Http404("File not found on vault disk.")
 
-        response = FileResponse(
-            open(file_path, 'rb'),
+        return _evidence_file_response(
+            file_path,
             as_attachment=False,
             filename=evidence.original_filename,
             content_type=evidence.mime_type or 'application/octet-stream',
         )
-        return response
 
 
 class EvidenceVerifyView(LoginRequiredMixin, View):
