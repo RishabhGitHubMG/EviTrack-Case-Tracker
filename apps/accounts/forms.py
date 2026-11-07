@@ -195,7 +195,7 @@ class OTPVerificationForm(forms.Form):
             'pattern': '[0-9]{6}',
             'autofocus': True,
         }),
-        help_text="Enter the 6-digit verification code from your authenticator app.",
+        help_text='Enter the 6-digit code from your email or authenticator app.',
     )
 
     def clean_otp_code(self) -> str:

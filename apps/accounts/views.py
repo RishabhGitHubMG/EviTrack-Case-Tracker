@@ -5,6 +5,7 @@ TOTP two-factor authentication, administrative approval workflow, and security a
 """
 import json
 import logging
+from datetime import timedelta
 from typing import Any
 
 from django.conf import settings
@@ -19,6 +20,7 @@ from django.contrib.auth import (
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import PermissionDenied
 from django.db.models import Q
+from django.utils import timezone
 from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse, reverse_lazy
@@ -31,6 +33,7 @@ from axes.decorators import axes_dispatch
 from axes.models import AccessAttempt, AccessFailureLog
 from axes.utils import reset as axes_reset
 
+from apps.accounts.models import EmailOTPChallenge
 from apps.accounts.forms import (
     LoginForm,
     OTPSetupForm,
@@ -47,7 +50,9 @@ from apps.accounts.services import (
     generate_qr_code_b64,
     get_otp_uri,
     send_approval_email,
+    send_email_otp,
     send_rejection_email,
+    verify_email_otp,
     verify_otp,
 )
 
@@ -138,33 +143,20 @@ class LoginView(FormView):
             form.add_error(None, "Invalid email address or password.")
             return self.form_invalid(form)
 
-        # Check if TOTP Two-Factor Authentication is enabled on this account
-        if user.otp_enabled:
-            # Stage user ID in session for OTP verification
-            self.request.session['pre_otp_user_id'] = user.pk
-            self.request.session['pre_otp_remember_me'] = remember_me
-            self.request.session['pre_otp_next'] = self.get_success_url()
-            logger.info("User %s credentials verified. Redirecting to OTP verification.", user.email)
-            return redirect('accounts:otp_verify')
+        otp_method = 'email'
+        if not send_email_otp(user):
+            form.add_error(None, 'Unable to send a sign-in code. Please try again later.')
+            return self.form_invalid(form)
 
-        # Log the user in directly
-        auth_login(self.request, user)
-
-        # Handle session expiry based on remember_me
-        if not remember_me:
-            self.request.session.set_expiry(0)  # Expires on browser close
-        else:
-            self.request.session.set_expiry(getattr(settings, 'SESSION_COOKIE_AGE', 900))
-
-        # Reset failed login count in axes
-        try:
-            axes_reset(username=user.email)
-        except Exception:
-            pass
-
-        logger.info("User logged in successfully: %s", user.email)
-        messages.success(self.request, f"Welcome back, {user.first_name or user.email}!")
-        return redirect(self.get_success_url())
+        self.request.session['pre_otp_user_id'] = user.pk
+        self.request.session['pre_otp_backend'] = getattr(
+            user, 'backend', settings.AUTHENTICATION_BACKENDS[0]
+        )
+        self.request.session['pre_otp_method'] = otp_method
+        self.request.session['pre_otp_remember_me'] = remember_me
+        self.request.session['pre_otp_next'] = self.get_success_url()
+        logger.info('User %s credentials verified. Awaiting %s OTP.', user.email, otp_method)
+        return redirect('accounts:otp_verify')
 
 
 class OTPVerifyView(FormView):
@@ -192,11 +184,33 @@ class OTPVerifyView(FormView):
             messages.error(request, "Invalid authentication session. Please sign in again.")
             return redirect('accounts:login')
 
+        self.otp_method = request.session.get('pre_otp_method', 'email')
+        if self.otp_method == 'totp' and not self.pending_user.otp_enabled:
+            self._clear_pending_session()
+            messages.error(request, 'Your authenticator settings changed. Please sign in again.')
+            return redirect('accounts:login')
+        challenge = EmailOTPChallenge.objects.filter(user=self.pending_user).first()
+        if not challenge or challenge.expires_at <= timezone.now():
+            self._clear_pending_session()
+            messages.warning(request, 'Your sign-in code expired. Please sign in again.')
+            return redirect('accounts:login')
+        if challenge.locked_until and challenge.locked_until > timezone.now():
+            self._clear_pending_session()
+            messages.error(request, 'Sign-in verification is temporarily locked. Try again later.')
+            return redirect('accounts:login')
         return super().dispatch(request, *args, **kwargs)
+
+    def _clear_pending_session(self) -> None:
+        for key in ('pre_otp_user_id', 'pre_otp_backend', 'pre_otp_method', 'pre_otp_remember_me', 'pre_otp_next'):
+            self.request.session.pop(key, None)
 
     def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
         context = super().get_context_data(**kwargs)
-        context['masked_email'] = self._mask_email(self.pending_user.email)
+        context['verification_instruction'] = (
+            f'Enter the 6-digit code sent to {self._mask_email(self.pending_user.email)}.'
+            if self.otp_method == 'email'
+            else 'Enter the 6-digit code from your authenticator app.'
+        )
         return context
 
     def _mask_email(self, email: str) -> str:
@@ -210,14 +224,33 @@ class OTPVerifyView(FormView):
     def form_valid(self, form: OTPVerificationForm) -> HttpResponse:
         code = form.cleaned_data['otp_code']
 
-        if verify_otp(self.pending_user, code):
-            # Two-Factor verified successfully!
-            user = self.pending_user
-            remember_me = self.request.session.pop('pre_otp_remember_me', False)
-            next_url = self.request.session.pop('pre_otp_next', settings.LOGIN_REDIRECT_URL)
-            self.request.session.pop('pre_otp_user_id', None)
+        valid_code = (
+            verify_email_otp(self.pending_user, code)
+            if self.otp_method == 'email'
+            else verify_otp(self.pending_user, code)
+        )
+        if valid_code and self.otp_method == 'email' and self.pending_user.otp_enabled:
+            EmailOTPChallenge.objects.update_or_create(
+                user=self.pending_user,
+                defaults={
+                    'code_hash': '',
+                    'expires_at': timezone.now() + timedelta(minutes=settings.EMAIL_OTP_TTL_MINUTES),
+                    'attempts': 0,
+                    'locked_until': None,
+                },
+            )
+            self.request.session['pre_otp_method'] = 'totp'
+            return redirect('accounts:otp_verify')
 
-            auth_login(self.request, user)
+        if valid_code:
+            EmailOTPChallenge.objects.filter(user=self.pending_user).delete()
+            user = self.pending_user
+            remember_me = self.request.session.get('pre_otp_remember_me', False)
+            next_url = self.request.session.get('pre_otp_next', settings.LOGIN_REDIRECT_URL)
+            backend = self.request.session.get('pre_otp_backend')
+            self._clear_pending_session()
+
+            auth_login(self.request, user, backend=backend)
 
             if not remember_me:
                 self.request.session.set_expiry(0)
@@ -229,12 +262,25 @@ class OTPVerifyView(FormView):
             except Exception:
                 pass
 
-            logger.info("User %s completed TOTP verification and signed in.", user.email)
+            logger.info('User %s completed %s verification and signed in.', user.email, self.otp_method)
             messages.success(self.request, f"Identity verified. Welcome back, {user.first_name or user.email}!")
             return redirect(next_url)
 
-        logger.warning("Invalid TOTP code entered for user %s", self.pending_user.email)
-        form.add_error('otp_code', "Invalid or expired verification code. Please check your authenticator and try again.")
+        logger.warning('Invalid %s code entered for user %s', self.otp_method, self.pending_user.email)
+        challenge = EmailOTPChallenge.objects.filter(user=self.pending_user).first()
+        if challenge:
+            if self.otp_method == 'totp':
+                challenge.attempts += 1
+                if challenge.attempts >= settings.EMAIL_OTP_MAX_ATTEMPTS:
+                    challenge.locked_until = timezone.now() + timedelta(
+                        minutes=settings.EMAIL_OTP_LOCKOUT_MINUTES
+                    )
+                challenge.save(update_fields=['attempts', 'locked_until', 'updated_at'])
+            if challenge.locked_until and challenge.locked_until > timezone.now():
+                self._clear_pending_session()
+                messages.error(self.request, 'Too many invalid codes. Sign-in verification is locked temporarily.')
+                return redirect('accounts:login')
+        form.add_error('otp_code', 'Invalid or expired verification code. Please try again.')
         return self.form_invalid(form)
 
 

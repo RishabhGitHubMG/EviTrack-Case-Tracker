@@ -1,10 +1,12 @@
 """
 Hearings, Tasks, Reminders, and Calendar service functions.
 """
+import logging
 from datetime import timedelta
 from typing import Any
 
 from django.conf import settings
+from django.core.mail import send_mail
 from django.contrib.contenttypes.models import ContentType
 from django.db import transaction
 from django.db.models import Q
@@ -17,6 +19,8 @@ from apps.cases.models import Case
 from apps.hearings.models import Hearing, Task
 from apps.notifications.models import Notification, Reminder
 from apps.notifications.services import create_notification
+
+logger = logging.getLogger(__name__)
 
 
 def schedule_hearing_reminders(hearing: Hearing) -> list[Reminder]:
@@ -69,7 +73,7 @@ def schedule_hearing_reminders(hearing: Hearing) -> list[Reminder]:
                 continue
 
             for channel in channels:
-                dedup_key = f"h:{hearing.pk}:u:{user.pk}:m:{offset}:c:{channel}"[:100]
+                dedup_key = f"h:{hearing.pk}:u:{user.pk}:m:{offset}:t:{int(remind_at.timestamp())}:c:{channel}"[:100]
 
                 reminder, created = Reminder.objects.get_or_create(
                     dedup_key=dedup_key,
@@ -128,7 +132,7 @@ def schedule_task_reminders(task: Task) -> list[Reminder]:
             continue
 
         for channel in channels:
-            dedup_key = f"t:{task.pk}:u:{user.pk}:m:{offset}:c:{channel}"[:100]
+            dedup_key = f"t:{task.pk}:u:{user.pk}:m:{offset}:t:{int(remind_at.timestamp())}:c:{channel}"[:100]
 
             reminder, created = Reminder.objects.get_or_create(
                 dedup_key=dedup_key,
@@ -344,19 +348,37 @@ def check_overdue_tasks() -> int:
             notification_type=Notification.NotificationType.DANGER if task.is_filing_deadline else Notification.NotificationType.WARNING,
         )
 
-        # Notification to case managers
-        case_managers = User.objects.filter(
-            Q(role=User.Role.CASE_MANAGER) | Q(id=task.case.created_by_id),
-            is_active=True
-        ).exclude(id=task.assigned_to_id).distinct()
-
-        for cm in case_managers:
+        case_managers = list(
+            User.objects.filter(is_active=True, role=User.Role.CASE_MANAGER)
+            .filter(Q(pk=task.case.created_by_id) | Q(case_assignments__case=task.case))
+            .exclude(pk=task.assigned_to_id)
+            .distinct()
+        )
+        recipients = case_managers or list(
+            User.objects.filter(is_active=True, role=User.Role.ADMIN).exclude(pk=task.assigned_to_id)
+        )
+        overdue_message = (
+            f"Overdue task in {task.case.case_no}: '{task.title}' assigned to "
+            f"{task.assigned_to.get_full_name() or task.assigned_to.email}."
+        )
+        for recipient in recipients:
             create_notification(
-                user=cm,
-                message=f"Overdue task in {task.case.case_no}: '{task.title}' assigned to {task.assigned_to.get_full_name() or task.assigned_to.email}.",
+                user=recipient,
+                message=overdue_message,
                 link=task_url,
                 notification_type=Notification.NotificationType.WARNING,
             )
+        for recipient in recipients:
+            try:
+                send_mail(
+                    f"Overdue task: {task.title}",
+                    overdue_message,
+                    settings.DEFAULT_FROM_EMAIL,
+                    [recipient.email],
+                    fail_silently=False,
+                )
+            except Exception:
+                logger.exception('Failed to email overdue task escalation to %s', recipient.pk)
 
         # Audit record
         log_audit_event(

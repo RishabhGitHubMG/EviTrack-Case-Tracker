@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+
+{% block title %}{% if my_activity %}My Activity{% else %}Audit Log{% endif %} - EviTrack{% endblock %}
+{% block breadcrumbs %}<li class="active" aria-current="page">{% if my_activity %}My Activity{% else %}Audit Log{% endif %}</li>{% endblock %}
+
+{% block content %}
+<div class="page-header mb-4 d-flex justify-content-between align-items-center flex-wrap gap-2">
+    <h1 class="page-title">{% if my_activity %}My Activity{% else %}Audit Log{% endif %}</h1>
+    {% if not my_activity %}<a class="btn btn-ev-outline btn-sm" href="{% url 'audit:audit_log_export' %}?{{ request.GET.urlencode }}">Export CSV</a>{% endif %}
+</div>
+
+<form method="get" class="card-ev p-3 mb-3 row g-2 align-items-end">
+    {% if not my_activity %}
+    <div class="col-md-3">
+        <label class="form-label" for="audit-user">User</label>
+        <select class="form-select" id="audit-user" name="user">
+            <option value="">All users</option>
+            {% for user_id, email in users %}<option value="{{ user_id }}">{{ email }}</option>{% endfor %}
+        </select>
+    </div>
+    {% endif %}
+    <div class="col-md">
+        <label class="form-label" for="audit-action">Action</label>
+        <input class="form-control" id="audit-action" type="search" name="action" value="{{ request.GET.action }}" maxlength="100">
+    </div>
+    {% if not my_activity %}
+    <div class="col-md-2">
+        <label class="form-label" for="audit-case">Case</label>
+        <select class="form-select" id="audit-case" name="case">
+            <option value="">All cases</option>
+            {% for case in cases %}<option value="{{ case.pk }}">{{ case.case_no }}</option>{% endfor %}
+        </select>
+    </div>
+    {% endif %}
+    <div class="col-md-2">
+        <label class="form-label" for="audit-date-from">From</label>
+        <input class="form-control" id="audit-date-from" type="date" name="date_from" value="{{ request.GET.date_from }}">
+    </div>
+    <div class="col-md-2">
+        <label class="form-label" for="audit-date-to">To</label>
+        <input class="form-control" id="audit-date-to" type="date" name="date_to" value="{{ request.GET.date_to }}">
+    </div>
+    <div class="col-md-auto"><button class="btn btn-ev-primary" type="submit">Filter</button></div>
+</form>
+
+{% if audit_entries %}
+<div class="card-ev table-responsive">
+    <table class="table table-hover align-middle mb-0">
+        <thead><tr><th>Time</th><th>User</th><th>Action</th><th>Case</th><th>Details</th></tr></thead>
+        <tbody>
+        {% for entry in audit_entries %}
+            <tr>
+                <td class="font-sm">{{ entry.timestamp|date:'Y-m-d H:i:s T' }}</td>
+                <td>{{ entry.user.email|default:'System' }}</td>
+                <td><code>{{ entry.action }}</code></td>
+                <td>{% if entry.case %}<a href="{% url 'cases:case_detail' entry.case_id %}">{{ entry.case.case_no }}</a>{% else %}—{% endif %}</td>
+                <td class="font-sm">{{ entry.details }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% if is_paginated %}
+<nav class="mt-3" aria-label="Audit log pages"><ul class="pagination pagination-sm">
+    {% if page_obj.has_previous %}<li class="page-item"><a class="page-link" href="?{{ request.GET.urlencode }}&page={{ page_obj.previous_page_number }}">Previous</a></li>{% endif %}
+    <li class="page-item disabled"><span class="page-link">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span></li>
+    {% if page_obj.has_next %}<li class="page-item"><a class="page-link" href="?{{ request.GET.urlencode }}&page={{ page_obj.next_page_number }}">Next</a></li>{% endif %}
+</ul></nav>
+{% endif %}
+{% else %}
+    {% include 'partials/empty_state.html' with icon='bi-journal-text' title='No audit entries' message='Adjust the filters and try again.' %}
+{% endif %}
+{% endblock %}

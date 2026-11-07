@@ -1,12 +1,11 @@
-"""
-URL configuration for audit app.
-"""
-from django.http import HttpResponse
 from django.urls import path
+
+from apps.audit import views
 
 app_name = 'audit'
 
 urlpatterns = [
-    path('', lambda r: HttpResponse('Audit Trail'), name='audit_log_list'),
-    path('my-activity/', lambda r: HttpResponse('My Activity'), name='my_activity'),
+    path('', views.AuditLogListView.as_view(), name='audit_log_list'),
+    path('my-activity/', views.MyActivityView.as_view(), name='my_activity'),
+    path('export.csv', views.AuditLogExportView.as_view(), name='audit_log_export'),
 ]
