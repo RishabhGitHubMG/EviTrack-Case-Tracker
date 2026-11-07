@@ -3,7 +3,7 @@
 {% block title %}Verify Sign In - EviTrack{% endblock %}
 {% block auth_icon %}bi-shield-lock{% endblock %}
 {% block auth_title %}Verify Your Sign In{% endblock %}
-{% block auth_subtitle %}<p class="auth-subtitle">Enter the 6-digit code sent to {{ masked_email }}</p>{% endblock %}
+{% block auth_subtitle %}<p class="auth-subtitle">{{ verification_instruction }}</p>{% endblock %}
 
 {% block auth_body %}
 <form method="post" action="{% url 'accounts:otp_verify' %}" novalidate>

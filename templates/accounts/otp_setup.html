@@ -6,11 +6,11 @@
 {% block content %}
 <div class="page-header mb-4">
     <h1 class="page-title">Authenticator App</h1>
-    <p class="text-muted mb-0">Use an authenticator app instead of email codes at sign-in.</p>
+    <p class="text-muted mb-0">Use an authenticator app alongside email verification at sign-in.</p>
 </div>
 <div class="card-ev p-4" style="max-width: 620px;">
     {% if otp_enabled %}
-        <p class="mb-3"><span class="badge-ev badge-success">Enabled</span> Sign-in uses your authenticator app.</p>
+        <p class="mb-3"><span class="badge-ev badge-success">Enabled</span> Sign-in also requires an authenticator code.</p>
     {% else %}
         <p class="mb-2">Scan this QR code with your authenticator app, or enter the key manually.</p>
         <img src="data:image/png;base64,{{ qr_code_b64 }}" alt="Authenticator QR code" width="200" height="200" class="mb-2">
