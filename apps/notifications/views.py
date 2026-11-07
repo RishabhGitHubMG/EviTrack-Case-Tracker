@@ -4,7 +4,7 @@ Views for in-app notifications. Every view is scoped to the requesting user.
 from typing import Any
 
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.http import HttpRequest, HttpResponse
+from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse
 from django.utils.http import url_has_allowed_host_and_scheme
@@ -56,6 +56,12 @@ class NotificationMarkReadView(LoginRequiredMixin, View):
         notification.save(update_fields=['is_read'])
         fallback = reverse('notifications:notification_list')
         return redirect(_safe_redirect_target(request, request.POST.get('next', ''), fallback))
+
+
+class UnreadCountAPIView(LoginRequiredMixin, View):
+    def get(self, request: HttpRequest) -> JsonResponse:
+        count = Notification.objects.filter(user=request.user, is_read=False).count()
+        return JsonResponse({'unread_count': count})
 
 
 class NotificationMarkAllReadView(LoginRequiredMixin, View):

@@ -27,7 +27,7 @@
       data-session-ping-url="{% url 'accounts_api:session_ping' %}"
       data-theme-url="{% url 'accounts_api:preferences_theme' %}"
       data-search-url="{% url 'core:search_api' %}"
-      data-notification-count-url="/notifications/api/unread-count/">
+      data-notification-count-url="{% url 'notifications_api:unread_count' %}">
 
     {% if user.is_authenticated %}
         <div class="app-wrapper">

@@ -249,6 +249,15 @@ class CustodyQRLabelView(CaseAccessMixin, View):
         except Exception:
             target_path = f"/evidence/{evidence.pk}/"
 
+        requested_format = request.GET.get('format', '').lower()
+        if not requested_format:
+            return render(request, 'custody/qr_label.html', {
+                'evidence': evidence,
+                'case': evidence.case,
+                'png_url': f"{request.path}?format=png",
+                'pdf_url': f"{request.path}?format=pdf",
+            })
+
         evidence_url = request.build_absolute_uri(target_path)
 
         # Build QR Code Image
@@ -303,7 +312,6 @@ class CustodyQRLabelView(CaseAccessMixin, View):
         y += 24
         draw.text((text_x, y), f"SEC LEVEL:   CJIS / ISO 27037 FORENSIC SEAL", fill='#DC2626')
 
-        requested_format = request.GET.get('format', 'png').lower()
         buf = io.BytesIO()
 
         if requested_format == 'pdf':

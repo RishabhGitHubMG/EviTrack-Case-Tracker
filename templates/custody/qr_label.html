@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+
+{% block title %}QR Label - {{ evidence.evidence_no }} - EviTrack{% endblock %}
+
+{% block breadcrumbs %}
+    <li><a href="{% url 'custody:custody_list' %}">Custody</a></li>
+    <li class="active" aria-current="page">QR Label</li>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0" style="max-width: 900px;">
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+        <div>
+            <h1 class="h3 fw-bold text-ev-navy mb-1">Custody QR Label</h1>
+            <p class="text-muted small mb-0">
+                Print this label and affix it to the physical or sealed item. Scanning the code opens the evidence record.
+            </p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{{ png_url }}" class="btn btn-ev-outline btn-sm" download><i class="bi bi-download me-1"></i> PNG</a>
+            <a href="{{ pdf_url }}" class="btn btn-ev-outline btn-sm" download><i class="bi bi-file-earmark-pdf me-1"></i> PDF</a>
+            <button type="button" class="btn btn-ev-primary btn-sm" onclick="window.print()"><i class="bi bi-printer me-1"></i> Print</button>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm">
+        <div class="card-body text-center p-4">
+            <img src="{{ png_url }}" alt="Custody QR label for {{ evidence.evidence_no }}" class="img-fluid border rounded" style="max-width: 620px;">
+            <p class="text-muted small mt-3 mb-0">
+                <span class="font-mono">{{ evidence.evidence_no }}</span> &middot; {{ case.case_no }}
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}

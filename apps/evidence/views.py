@@ -22,6 +22,7 @@ from apps.accounts.mixins import ReadOnlyMixin, check_case_access, get_user_acce
 from apps.audit.services import log_action
 from apps.cases.models import Case
 from apps.custody.models import CustodyEvent
+from apps.custody.services import get_custody_timeline
 from apps.evidence.forms import EvidenceUpdateForm, EvidenceUploadForm
 from apps.evidence.models import Evidence, IntegrityCheck, Tag
 from apps.evidence.services import (
@@ -32,7 +33,7 @@ from apps.evidence.services import (
     verify_evidence_integrity,
 )
 from apps.notifications.models import Notification
-from apps.notifications.services import create_notification
+from apps.notifications.services import notify_case_managers
 
 
 class EvidenceListView(LoginRequiredMixin, ListView):
@@ -267,11 +268,7 @@ class EvidenceDetailView(LoginRequiredMixin, DetailView):
         evidence = self.object
         user = self.request.user
 
-        # Chain of Custody
-        custody_history = CustodyEvent.objects.filter(
-            evidence=evidence
-        ).select_related('from_user', 'to_user', 'resolved_by').order_by('-requested_at')
-        context['custody_history'] = custody_history
+        context['timeline'] = get_custody_timeline(evidence)
 
         # Integrity checks
         integrity_checks = evidence.integrity_checks.all().select_related('checked_by').order_by('-checked_on')[:20]
@@ -401,8 +398,8 @@ class EvidenceVerifyView(LoginRequiredMixin, View):
             evidence.save(update_fields=['status'])
 
             # Send alert notification
-            create_notification(
-                user=request.user,
+            notify_case_managers(
+                case=evidence.case,
                 message=f"INTEGRITY ALERT: Evidence {evidence.evidence_no} failed integrity check.",
                 link=reverse('evidence:evidence_detail', kwargs={'pk': evidence.pk}),
                 notification_type=Notification.NotificationType.DANGER,
