@@ -1,0 +1,236 @@
+{% extends "base.html" %}
+
+{% block title %}{{ case.case_no }} - EviTrack{% endblock %}
+{% block breadcrumbs %}
+<li><a href="{% url 'cases:case_list' %}">Cases</a></li>
+<li class="active" aria-current="page">{{ case.case_no }}</li>
+{% endblock %}
+
+{% block content %}
+<div class="page-header mb-3 d-flex justify-content-between align-items-start flex-wrap gap-2">
+    <div>
+        <h1 class="page-title">{{ case.title }}</h1>
+        <p class="text-muted mb-0 font-mono">{{ case.case_no }} &middot; {{ case.get_case_type_display }} &middot; <span class="badge-ev">{{ case.get_status_display }}</span> <span class="badge-ev">{{ case.get_priority_display }}</span></p>
+    </div>
+    {% if can_manage %}
+    <a href="{% url 'cases:case_update' case.pk %}" class="btn btn-ev-outline btn-sm"><i class="bi bi-pencil"></i> Edit Case</a>
+    {% endif %}
+</div>
+
+<ul class="nav nav-tabs mb-4">
+    <li class="nav-item"><a class="nav-link {% if active_tab == 'overview' %}active{% endif %}" href="?tab=overview">Overview</a></li>
+    <li class="nav-item"><a class="nav-link {% if active_tab == 'parties' %}active{% endif %}" href="?tab=parties">Parties</a></li>
+    <li class="nav-item"><a class="nav-link {% if active_tab == 'evidence' %}active{% endif %}" href="?tab=evidence">Evidence</a></li>
+    <li class="nav-item"><a class="nav-link {% if active_tab == 'custody' %}active{% endif %}" href="?tab=custody">Custody</a></li>
+    <li class="nav-item"><a class="nav-link {% if active_tab == 'hearings' %}active{% endif %}" href="?tab=hearings">Hearings</a></li>
+    <li class="nav-item"><a class="nav-link {% if active_tab == 'tasks' %}active{% endif %}" href="?tab=tasks">Tasks</a></li>
+    <li class="nav-item"><a class="nav-link {% if active_tab == 'team' %}active{% endif %}" href="?tab=team">Team</a></li>
+    <li class="nav-item"><a class="nav-link {% if active_tab == 'timeline' %}active{% endif %}" href="?tab=timeline">Timeline</a></li>
+    <li class="nav-item"><a class="nav-link {% if active_tab == 'audit' %}active{% endif %}" href="?tab=audit">Audit</a></li>
+</ul>
+
+{% if active_tab == 'overview' %}
+    <div class="row g-3">
+        <div class="col-lg-8">
+            <div class="card-ev p-4">
+                <h2 class="h6">Description</h2>
+                <p class="mb-0">{{ case.description|linebreaksbr|default:"No description." }}</p>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="card-ev p-4">
+                <h2 class="h6">Quick stats</h2>
+                <ul class="list-unstyled mb-0 font-sm">
+                    <li class="d-flex justify-content-between py-1"><span>Evidence</span><strong>{{ stats.evidence_count }}</strong></li>
+                    <li class="d-flex justify-content-between py-1"><span>Custody events</span><strong>{{ stats.custody_count }}</strong></li>
+                    <li class="d-flex justify-content-between py-1"><span>Hearings</span><strong>{{ stats.hearings_count }}</strong></li>
+                    <li class="d-flex justify-content-between py-1"><span>Tasks</span><strong>{{ stats.tasks_count }}</strong></li>
+                    <li class="d-flex justify-content-between py-1"><span>Parties</span><strong>{{ stats.parties_count }}</strong></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+{% elif active_tab == 'parties' %}
+    {% if can_manage %}
+    <div class="card-ev p-4 mb-3">
+        <h2 class="h6">Add party</h2>
+        <form method="post" action="{% url 'cases:party_create' case.pk %}" novalidate>
+            {% csrf_token %}
+            <div class="row g-2">
+                {% for field in party_form %}<div class="col-md-6">{% include 'partials/form_field.html' %}</div>{% endfor %}
+            </div>
+            <button type="submit" class="btn btn-ev-primary btn-sm">Add Party</button>
+        </form>
+    </div>
+    {% endif %}
+    {% if parties %}
+    <div class="card-ev table-responsive">
+        <table class="table align-middle mb-0">
+            <thead><tr><th>Name</th><th>Type</th><th>Contact</th><th class="text-end">Actions</th></tr></thead>
+            <tbody>
+            {% for party in parties %}
+                <tr>
+                    <td>{{ party.name }}</td>
+                    <td>{{ party.get_party_type_display }}</td>
+                    <td class="font-sm">{{ party.email|default:"" }} {{ party.phone|default:"" }}</td>
+                    <td class="text-end">
+                        <a href="{% url 'cases:party_update' case.pk party.pk %}" class="btn btn-sm btn-ev-outline">Edit</a>
+                        <a href="{% url 'cases:party_delete' case.pk party.pk %}" class="btn btn-sm btn-ev-outline">Delete</a>
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+        {% include 'partials/empty_state.html' with icon='bi-people' title='No parties recorded' %}
+    {% endif %}
+
+{% elif active_tab == 'evidence' %}
+    <div class="d-flex justify-content-end mb-3">
+        <a href="{% url 'evidence:evidence_upload' case.pk %}" class="btn btn-ev-primary btn-sm"><i class="bi bi-upload"></i> Upload Evidence</a>
+    </div>
+    {% if evidence_items %}
+    <div class="card-ev table-responsive">
+        <table class="table align-middle mb-0">
+            <thead><tr><th>Evidence No.</th><th>Title</th><th>Status</th><th>SHA-256</th></tr></thead>
+            <tbody>
+            {% for item in evidence_items %}
+                <tr>
+                    <td><a href="{% url 'evidence:evidence_detail' item.pk %}" class="font-mono">{{ item.evidence_no }}</a></td>
+                    <td>{{ item.title }}</td>
+                    <td><span class="badge-ev">{{ item.get_status_display }}</span></td>
+                    <td class="font-mono font-sm text-muted">{{ item.sha256|slice:":16" }}&hellip;</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+        {% include 'partials/empty_state.html' with icon='bi-shield-lock' title='No evidence yet' message='Uploaded files for this case appear here.' %}
+    {% endif %}
+
+{% elif active_tab == 'custody' %}
+    {% if custody_events %}
+    <div class="card-ev table-responsive">
+        <table class="table align-middle mb-0">
+            <thead><tr><th>Evidence</th><th>From</th><th>To</th><th>Status</th><th>Requested</th></tr></thead>
+            <tbody>
+            {% for event in custody_events %}
+                <tr>
+                    <td class="font-mono">{{ event.evidence.evidence_no }}</td>
+                    <td class="font-sm">{{ event.from_user|default:"-" }}</td>
+                    <td class="font-sm">{{ event.to_user|default:"-" }}</td>
+                    <td><span class="badge-ev">{{ event.get_status_display }}</span></td>
+                    <td class="font-sm text-muted">{{ event.requested_at|date:"d M Y H:i" }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+        {% include 'partials/empty_state.html' with icon='bi-arrow-left-right' title='No custody events' %}
+    {% endif %}
+
+{% elif active_tab == 'hearings' %}
+    {% if hearings %}
+    <div class="card-ev table-responsive">
+        <table class="table align-middle mb-0">
+            <thead><tr><th>Date</th><th>Court</th><th>Purpose</th><th>Outcome</th></tr></thead>
+            <tbody>
+            {% for h in hearings %}
+                <tr>
+                    <td><a href="{% url 'hearings:hearing_detail' h.pk %}">{{ h.hearing_date|date:"d M Y" }}</a></td>
+                    <td>{{ h.court }}</td>
+                    <td class="font-sm">{{ h.purpose }}</td>
+                    <td class="font-sm">{{ h.outcome|default:"Pending" }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+        {% include 'partials/empty_state.html' with icon='bi-calendar-event' title='No hearings scheduled' %}
+    {% endif %}
+
+{% elif active_tab == 'tasks' %}
+    {% if tasks %}
+    <div class="card-ev table-responsive">
+        <table class="table align-middle mb-0">
+            <thead><tr><th>Task</th><th>Assigned to</th><th>Due</th><th>Status</th></tr></thead>
+            <tbody>
+            {% for task in tasks %}
+                <tr>
+                    <td>{{ task.title }}</td>
+                    <td class="font-sm">{{ task.assigned_to|default:"-" }}</td>
+                    <td class="font-sm">{{ task.due_date|date:"d M Y" }}</td>
+                    <td><span class="badge-ev">{{ task.get_status_display }}</span></td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+        {% include 'partials/empty_state.html' with icon='bi-list-task' title='No tasks' %}
+    {% endif %}
+
+{% elif active_tab == 'team' %}
+    {% if can_manage %}
+    <div class="card-ev p-4 mb-3">
+        <h2 class="h6">Assign user</h2>
+        <form method="post" action="{% url 'cases:case_assign' case.pk %}" class="row g-2 align-items-end" novalidate>
+            {% csrf_token %}
+            {% for field in assignment_form %}<div class="col-md">{% include 'partials/form_field.html' %}</div>{% endfor %}
+            <div class="col-md-auto"><button type="submit" class="btn btn-ev-primary btn-sm">Assign</button></div>
+        </form>
+    </div>
+    {% endif %}
+    <div class="card-ev table-responsive">
+        <table class="table align-middle mb-0">
+            <thead><tr><th>User</th><th>Role on case</th><th>Assigned</th><th class="text-end"></th></tr></thead>
+            <tbody>
+            {% for a in assignments %}
+                <tr>
+                    <td>{{ a.user.get_full_name|default:a.user.email }}</td>
+                    <td class="font-sm">{{ a.get_role_on_case_display }}</td>
+                    <td class="font-sm text-muted">{{ a.assigned_on|date:"d M Y" }}</td>
+                    <td class="text-end">
+                        {% if can_manage %}
+                        <form method="post" action="{% url 'cases:case_unassign' case.pk a.pk %}" class="d-inline">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-sm btn-ev-outline">Remove</button>
+                        </form>
+                        {% endif %}
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+{% elif active_tab == 'timeline' %}
+    <p class="font-sm"><a href="{% url 'cases:case_timeline' case.pk %}">Open full timeline</a></p>
+
+{% elif active_tab == 'audit' %}
+    {% if audit_entries %}
+    <div class="card-ev table-responsive">
+        <table class="table align-middle mb-0">
+            <thead><tr><th>When</th><th>Actor</th><th>Action</th><th>Object</th></tr></thead>
+            <tbody>
+            {% for entry in audit_entries %}
+                <tr>
+                    <td class="font-sm text-muted">{{ entry.timestamp|date:"d M Y H:i" }}</td>
+                    <td class="font-sm">{{ entry.actor_email|default:"-" }}</td>
+                    <td class="font-sm">{{ entry.action }}</td>
+                    <td class="font-sm">{{ entry.object_repr|default:"-" }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+        {% include 'partials/empty_state.html' with icon='bi-journal-text' title='No audit entries' %}
+    {% endif %}
+{% endif %}
+{% endblock %}

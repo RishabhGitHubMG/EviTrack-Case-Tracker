@@ -1,0 +1,5 @@
+<div class="empty-state">
+    <div class="empty-state-icon"><i class="bi {{ icon|default:'bi-inbox' }}"></i></div>
+    <h5 class="empty-state-title">{{ title|default:'Nothing here yet' }}</h5>
+    {% if message %}<p class="empty-state-description">{{ message }}</p>{% endif %}
+</div>

@@ -5,7 +5,7 @@ from rest_framework import permissions, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from apps.accounts.mixins import CaseAccessMixin
+from apps.accounts.mixins import check_case_access, get_user_accessible_cases
 from apps.audit.services import log_action
 from apps.evidence.models import Evidence, IntegrityCheck
 from apps.evidence.services import verify_evidence_integrity
@@ -24,7 +24,7 @@ class EvidenceVerifyAPIView(APIView):
         except Evidence.DoesNotExist:
             return Response({'error': 'Evidence not found.'}, status=status.HTTP_404_NOT_FOUND)
 
-        if not CaseAccessMixin.user_has_case_access(request.user, evidence.case):
+        if not check_case_access(request.user, evidence.case):
             return Response({'error': 'Permission denied.'}, status=status.HTTP_403_FORBIDDEN)
 
         is_valid, computed_hash = verify_evidence_integrity(evidence)
@@ -78,7 +78,7 @@ class EvidenceListAPIView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request) -> Response:
-        accessible_cases = CaseAccessMixin.get_user_cases(request.user)
+        accessible_cases = get_user_accessible_cases(request.user)
         qs = Evidence.objects.filter(case__in=accessible_cases).select_related('case')
 
         case_id = request.query_params.get('case')

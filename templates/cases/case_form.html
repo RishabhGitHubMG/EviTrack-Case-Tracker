@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block breadcrumbs %}
+<li><a href="{% url 'cases:case_list' %}">Cases</a></li>
+<li class="active" aria-current="page">{% block heading %}{% endblock %}</li>
+{% endblock %}
+
+{% block content %}
+<div class="page-header mb-4">
+    <h1 class="page-title">{% block page_heading %}{% endblock %}</h1>
+</div>
+<div class="card-ev p-4" style="max-width: 720px;">
+    <form method="post" novalidate>
+        {% csrf_token %}
+        {% for err in form.non_field_errors %}
+            <div class="alert alert-danger py-2 px-3 mb-3 font-sm" role="alert">{{ err }}</div>
+        {% endfor %}
+        <div class="row g-2">
+            {% for field in form %}
+                <div class="col-md-6">{% include 'partials/form_field.html' %}</div>
+            {% endfor %}
+        </div>
+        <button type="submit" class="btn btn-ev-primary">{% block submit_label %}{% endblock %}</button>
+        <a href="{% if case %}{% url 'cases:case_detail' case.pk %}{% else %}{% url 'cases:case_list' %}{% endif %}" class="btn btn-ev-outline ms-2">Cancel</a>
+    </form>
+</div>
+{% endblock %}

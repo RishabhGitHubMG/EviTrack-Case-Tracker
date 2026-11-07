@@ -1,0 +1,14 @@
+{% extends "base_minimal.html" %}
+
+{% block content %}
+<div class="auth-layout" style="min-height: calc(100vh - 120px); margin: -1.5rem -0.75rem;">
+    <div class="auth-card" style="max-width: {% block auth_width %}440px{% endblock %};">
+        <div class="auth-brand">
+            <div class="auth-logo-badge"><i class="bi {% block auth_icon %}bi-shield-check{% endblock %}"></i></div>
+            <h1 class="auth-title">{% block auth_title %}{% endblock %}</h1>
+            {% block auth_subtitle %}{% endblock %}
+        </div>
+        {% block auth_body %}{% endblock %}
+    </div>
+</div>
+{% endblock %}

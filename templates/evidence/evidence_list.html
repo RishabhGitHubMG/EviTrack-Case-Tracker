@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block title %}Evidence Vault - EviTrack{% endblock %}
+{% block breadcrumbs %}<li class="active" aria-current="page">Evidence Vault</li>{% endblock %}
+
+{% block content %}
+<div class="page-header mb-4 d-flex justify-content-between align-items-center flex-wrap gap-2">
+    <h1 class="page-title">Evidence Vault</h1>
+    {% if not is_reviewer %}
+    <a href="{% url 'evidence:evidence_upload_generic' %}" class="btn btn-ev-primary btn-sm"><i class="bi bi-upload"></i> Upload Evidence</a>
+    {% endif %}
+</div>
+
+<form method="get" class="row g-2 mb-3">
+    <div class="col-md-4"><input type="search" name="q" value="{{ search_query }}" class="form-control" placeholder="Search title, number or hash" aria-label="Search evidence"></div>
+    <div class="col-md-3">
+        <select name="case" class="form-select" aria-label="Filter by case">
+            <option value="">All cases</option>
+            {% for c in cases %}<option value="{{ c.pk }}">{{ c.case_no }}</option>{% endfor %}
+        </select>
+    </div>
+    <div class="col-md-3">
+        <select name="status" class="form-select" aria-label="Filter by status">
+            <option value="">All statuses</option>
+            {% for value, label in status_choices %}<option value="{{ value }}" {% if value == selected_status %}selected{% endif %}>{{ label }}</option>{% endfor %}
+        </select>
+    </div>
+    <div class="col-md-2"><button class="btn btn-ev-outline w-100" type="submit">Filter</button></div>
+</form>
+
+{% if evidence_list %}
+<div class="row g-3">
+    {% for item in evidence_list %}
+    <div class="col-md-6 col-xl-4">
+        <div class="card-ev p-3 h-100">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <a href="{% url 'evidence:evidence_detail' item.pk %}" class="fw-semibold font-mono">{{ item.evidence_no }}</a>
+                <span class="badge-ev">{{ item.get_status_display }}</span>
+            </div>
+            <div class="mb-2">{{ item.title }}</div>
+            <div class="font-sm text-muted mb-2">{{ item.case.case_no }} &middot; v{{ item.version }}</div>
+            <div class="font-mono font-sm text-muted text-truncate"><i class="bi bi-hash"></i>{{ item.sha256|slice:":24" }}&hellip;</div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% include 'partials/pagination.html' %}
+{% else %}
+    {% include 'partials/empty_state.html' with icon='bi-shield-lock' title='No evidence found' message='Upload evidence to a case, or adjust your filters.' %}
+{% endif %}
+{% endblock %}

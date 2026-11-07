@@ -14,10 +14,10 @@ Status legend: **Complete** (works, tested) · **Partial** (code exists, not wir
 
 ## STATUS HEADER (keep current)
 - ANALYSIS DONE: YES (section 1 kept as written; accounts and case-access items re-verified in session 2)
-- Last updated: session 2
-- Session number: 2
+- Last updated: session 3
+- Session number: 3
 - Overall completion: not measured (see checklist, section 3)
-- **NEXT ACTION:** Create the missing account templates so `apps/accounts/tests/test_pages.py` passes: `accounts/login.html` first, then `otp_verify`, `profile`, `password_change`, `otp_setup`, `user_list`, `user_approval`, `failed_logins`. Then create the case templates (list, detail, form, timeline) and run `pytest`.
+- **NEXT ACTION:** Create `templates/core/dashboard.html` (sidebar and error pages link to it; currently missing), then `notifications`, `reports`, `audit`, `hearings/calendar` and `hearings/task_create|task_update` templates. Then browser-test the golden paths on the dev server (login, case create, upload, verify, custody request). Pytest currently passes 30 tests.
 
 ## 1. Phase 0 analysis (baseline as found)
 
@@ -91,6 +91,8 @@ Gaps: `Notification` has no `title`, `level` or `case`. Reminder `dedup_key` omi
 
 - Case-access call sites use the module functions in `apps/accounts/mixins.py` (`check_case_access`, `require_case_access`, `get_user_accessible_cases`). No static shim methods were added to `CaseAccessMixin`.
 - Error pages and landing link to `core:dashboard` and `core:landing`, not `cases:dashboard`.
+- `templates/base.html` and `static/css/evitrack.css` already had the design tokens, dark mode and shared components; session 3 reused them and added partials (`form_field`, `status_pill`, `empty_state`) plus `auth_base.html`.
+- Case create and edit share `cases/case_form.html` through template blocks.
 
 ## 3. Checklist (live)
 
@@ -106,11 +108,11 @@ Each row is updated as work is completed. Final state must be **Complete** for e
 | Foundation | Evidence storage outside web root, served via authenticated audit-logged view | Partial |
 | Audit | Hash chain with verify action (exists in code, not yet tested) | Partial |
 | UI | Print styles | Missing |
-| 1 Accounts | Register, approval queue, approve/reject, role change | Broken |
-| 1 Accounts | Login with email OTP (every login), TOTP option, profile, password change | Broken |
+| 1 Accounts | Register, approval queue, approve/reject, role change | Partial |
+| 1 Accounts | Login with email OTP (every login), TOTP option, profile, password change | Partial |
 | 1 Accounts | Session timeout (15 min, warning modal), lockout, failed-login view | Partial |
-| 2 Cases | List, filter, sort, create, detail tabs, edit, transitions, assign, parties, timeline | Broken |
-| 3 Evidence | Upload (drag-drop, progress), versions, preview, download log, verify, bulk verify, metadata, QR | Broken |
+| 2 Cases | List, filter, sort, create, detail tabs, edit, transitions, assign, parties, timeline | Partial |
+| 3 Evidence | Upload (drag-drop, progress), versions, preview, download log, verify, bulk verify, metadata, QR | Partial |
 | 4 Custody | Request, accept/reject, timeline, QR label, pending on dashboard | Partial |
 | 5 Hearings | Calendar, hearings CRUD, outcome and next date, tasks CRUD, overdue | Partial |
 | 6 Notifications | Scheduling, email/SMS/in-app delivery, retry, escalation, idempotent, bell, notification page | Missing |
@@ -135,5 +137,6 @@ Each row is updated as work is completed. Final state must be **Complete** for e
 - Demo credentials: none yet (seed not built)
 
 ## 5. SESSION LOG (newest on top)
+- Session 3: templates added for accounts (login, OTP verify, password change, profile, OTP setup, user list, approval queue, failed logins), cases (list, detail with tabs, create/edit form, party form and delete) and evidence (list, upload, detail, update, QR label); shared partials and `auth_base.html`. Fixed: `CaseAccessMixin` call sites in cases, evidence and evidence API now use module helpers (some edits had not persisted and were reapplied); evidence detail `item.versions` changed to `newer_versions`; evidence tag filter uses `evidence_items`; `self.check_case_access` calls in cases views replaced. Pytest: 30 pass. Not yet browser-tested; verify flow is fetch-based.
 - Session 2: merged the new RULES, status header, run notes and log into this file; checklist rows updated from verified runs only. Case-access call sites repointed to module helpers; error and landing templates use `core:dashboard` and `core:landing`. Added `apps/cases/tests/test_case_access.py` (4 pass) and `apps/accounts/tests/test_pages.py` (8 pass, 1 fails: `accounts/login.html` missing).
 - Session 1 (earlier): baseline analysis written (section 1).

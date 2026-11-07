@@ -46,7 +46,7 @@ class EvidenceListView(LoginRequiredMixin, ListView):
 
     def get_queryset(self) -> QuerySet:
         user = self.request.user
-        accessible_cases = CaseAccessMixin.get_user_cases(user)
+        accessible_cases = get_user_accessible_cases(user)
 
         qs = Evidence.objects.filter(case__in=accessible_cases).select_related(
             'case', 'uploaded_by', 'current_holder'
@@ -83,10 +83,10 @@ class EvidenceListView(LoginRequiredMixin, ListView):
     def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
         context = super().get_context_data(**kwargs)
         user = self.request.user
-        accessible_cases = CaseAccessMixin.get_user_cases(user)
+        accessible_cases = get_user_accessible_cases(user)
 
         context['cases'] = accessible_cases.order_by('case_no')
-        context['all_tags'] = Tag.objects.filter(evidence__case__in=accessible_cases).distinct().order_by('name')[:30]
+        context['all_tags'] = Tag.objects.filter(evidence_items__case__in=accessible_cases).distinct().order_by('name')[:30]
         context['status_choices'] = Evidence.Status.choices
         context['view_mode'] = self.request.GET.get('view', 'list')
         context['selected_case'] = self.request.GET.get('case', '')
@@ -108,10 +108,10 @@ class EvidenceUploadView(LoginRequiredMixin, ReadOnlyMixin, View):
         case = None
         if case_id:
             case = get_object_or_404(Case, pk=case_id)
-            if not CaseAccessMixin.user_has_case_access(request.user, case):
+            if not check_case_access(request.user, case):
                 raise PermissionDenied("You do not have permission to upload evidence for this case.")
 
-        accessible_cases = CaseAccessMixin.get_user_cases(request.user)
+        accessible_cases = get_user_accessible_cases(request.user)
         form = EvidenceUploadForm()
 
         parent_id = request.GET.get('parent')
@@ -137,7 +137,7 @@ class EvidenceUploadView(LoginRequiredMixin, ReadOnlyMixin, View):
             return redirect('evidence:evidence_list')
 
         case = get_object_or_404(Case, pk=target_case_id)
-        if not CaseAccessMixin.user_has_case_access(request.user, case):
+        if not check_case_access(request.user, case):
             raise PermissionDenied("You do not have permission to upload evidence for this case.")
 
         # Check for multiple files vs single file
@@ -257,7 +257,7 @@ class EvidenceDetailView(LoginRequiredMixin, DetailView):
 
     def get_object(self, queryset: QuerySet | None = None) -> Evidence:
         evidence = super().get_object(queryset)
-        if not CaseAccessMixin.user_has_case_access(self.request.user, evidence.case):
+        if not check_case_access(self.request.user, evidence.case):
             raise PermissionDenied("You do not have access to evidence in this case.")
         return evidence
 
@@ -283,7 +283,7 @@ class EvidenceDetailView(LoginRequiredMixin, DetailView):
 
         def get_all_descendants(item):
             desc = [item]
-            for child in item.versions.all().order_by('version'):
+            for child in item.newer_versions.all().order_by('version'):
                 desc.extend(get_all_descendants(child))
             return desc
 
@@ -316,7 +316,7 @@ class EvidenceDownloadView(LoginRequiredMixin, View):
 
     def get(self, request: HttpRequest, pk: int) -> HttpResponse:
         evidence = get_object_or_404(Evidence, pk=pk)
-        if not CaseAccessMixin.user_has_case_access(request.user, evidence.case):
+        if not check_case_access(request.user, evidence.case):
             raise PermissionDenied("You do not have permission to download this evidence.")
 
         file_path = get_evidence_file_path(evidence)
@@ -356,7 +356,7 @@ class EvidencePreviewView(LoginRequiredMixin, View):
 
     def get(self, request: HttpRequest, pk: int) -> HttpResponse:
         evidence = get_object_or_404(Evidence, pk=pk)
-        if not CaseAccessMixin.user_has_case_access(request.user, evidence.case):
+        if not check_case_access(request.user, evidence.case):
             raise PermissionDenied("Access to preview this evidence is denied.")
 
         file_path = get_evidence_file_path(evidence)
@@ -380,7 +380,7 @@ class EvidenceVerifyView(LoginRequiredMixin, View):
 
     def post(self, request: HttpRequest, pk: int) -> JsonResponse:
         evidence = get_object_or_404(Evidence, pk=pk)
-        if not CaseAccessMixin.user_has_case_access(request.user, evidence.case):
+        if not check_case_access(request.user, evidence.case):
             return JsonResponse({'status': 'error', 'message': 'Permission denied.'}, status=403)
 
         is_valid, computed_hash = verify_evidence_integrity(evidence)
@@ -460,7 +460,7 @@ class EvidenceBulkVerifyView(LoginRequiredMixin, View):
 
     def post(self, request: HttpRequest, case_id: int) -> HttpResponse:
         case = get_object_or_404(Case, pk=case_id)
-        if not CaseAccessMixin.user_has_case_access(request.user, case):
+        if not check_case_access(request.user, case):
             raise PermissionDenied("You do not have access to this case.")
 
         # Try Celery async dispatch
@@ -501,7 +501,7 @@ class EvidenceQRView(LoginRequiredMixin, View):
 
     def get(self, request: HttpRequest, pk: int) -> HttpResponse:
         evidence = get_object_or_404(Evidence, pk=pk)
-        if not CaseAccessMixin.user_has_case_access(request.user, evidence.case):
+        if not check_case_access(request.user, evidence.case):
             raise PermissionDenied("Access to evidence QR code denied.")
 
         # If image format requested, return PNG
@@ -532,7 +532,7 @@ class EvidenceUpdateView(LoginRequiredMixin, ReadOnlyMixin, UpdateView):
 
     def dispatch(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
         evidence = self.get_object()
-        if not CaseAccessMixin.user_has_case_access(request.user, evidence.case):
+        if not check_case_access(request.user, evidence.case):
             raise PermissionDenied("You do not have access to edit this evidence.")
         return super().dispatch(request, *args, **kwargs)
 

@@ -49,7 +49,7 @@ class CaseListView(LoginRequiredMixin, CaseAccessMixin, ListView):
     paginate_by = 25
 
     def get_queryset(self) -> QuerySet:
-        qs = CaseAccessMixin.get_user_cases(self.request.user)
+        qs = get_user_accessible_cases(self.request.user)
         qs = qs.select_related('created_by').prefetch_related('assignments__user')
 
         # Apply search and filters from GET parameters
@@ -97,7 +97,7 @@ class CaseListView(LoginRequiredMixin, CaseAccessMixin, ListView):
 
     def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
         context = super().get_context_data(**kwargs)
-        user_cases = CaseAccessMixin.get_user_cases(self.request.user)
+        user_cases = get_user_accessible_cases(self.request.user)
         context['filter_form'] = CaseFilterForm(self.request.GET)
         context['total_cases_count'] = user_cases.count()
         context['open_cases_count'] = user_cases.filter(status=Case.Status.OPEN).count()
@@ -287,7 +287,7 @@ class CaseAssignView(LoginRequiredMixin, CaseManagerOrAdminMixin, ReadOnlyMixin,
 
     def post(self, request: HttpRequest, pk: int) -> HttpResponse:
         case = get_object_or_404(Case, pk=pk)
-        self.check_case_access(case)
+        require_case_access(self.request.user, case)
 
         form = CaseAssignmentForm(request.POST)
         if form.is_valid():
@@ -330,7 +330,7 @@ class CaseUnassignView(LoginRequiredMixin, CaseManagerOrAdminMixin, ReadOnlyMixi
 
     def post(self, request: HttpRequest, pk: int, assignment_id: int) -> HttpResponse:
         case = get_object_or_404(Case, pk=pk)
-        self.check_case_access(case)
+        require_case_access(self.request.user, case)
 
         assignment = get_object_or_404(CaseAssignment, pk=assignment_id, case=case)
         assigned_user = assignment.user
@@ -362,7 +362,7 @@ class PartyCreateView(LoginRequiredMixin, ReadOnlyMixin, CaseAccessMixin, View):
 
     def post(self, request: HttpRequest, pk: int) -> HttpResponse:
         case = get_object_or_404(Case, pk=pk)
-        self.check_case_access(case)
+        require_case_access(self.request.user, case)
 
         form = PartyForm(request.POST)
         if form.is_valid():
@@ -401,7 +401,7 @@ class PartyUpdateView(LoginRequiredMixin, ReadOnlyMixin, CaseAccessMixin, Update
 
     def dispatch(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
         party = self.get_object()
-        self.check_case_access(party.case)
+        require_case_access(self.request.user, party.case)
         return super().dispatch(request, *args, **kwargs)
 
     def form_valid(self, form: PartyForm) -> HttpResponse:
@@ -437,7 +437,7 @@ class PartyDeleteView(LoginRequiredMixin, ReadOnlyMixin, CaseAccessMixin, Delete
 
     def dispatch(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
         party = self.get_object()
-        self.check_case_access(party.case)
+        require_case_access(self.request.user, party.case)
         return super().dispatch(request, *args, **kwargs)
 
     def delete(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
@@ -480,7 +480,7 @@ class CaseTimelineView(LoginRequiredMixin, CaseAccessMixin, View):
 
     def get(self, request: HttpRequest, pk: int) -> HttpResponse:
         case = get_object_or_404(Case, pk=pk)
-        self.check_case_access(case)
+        require_case_access(self.request.user, case)
 
         timeline_events = []
 

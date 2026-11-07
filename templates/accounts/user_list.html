@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block title %}User Management - EviTrack{% endblock %}
+{% block breadcrumbs %}<li class="active" aria-current="page">User Management</li>{% endblock %}
+
+{% block content %}
+<div class="page-header mb-4 d-flex justify-content-between align-items-center flex-wrap gap-2">
+    <h1 class="page-title">User Management</h1>
+    <a href="{% url 'accounts:user_approval' %}" class="btn btn-ev-primary btn-sm">
+        <i class="bi bi-person-check"></i> Approval Queue ({{ pending_users_count }})
+    </a>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-6 col-lg-3"><div class="card-ev p-3"><div class="text-muted font-sm">Total</div><div class="fs-4 fw-semibold">{{ total_users_count }}</div></div></div>
+    <div class="col-6 col-lg-3"><div class="card-ev p-3"><div class="text-muted font-sm">Active</div><div class="fs-4 fw-semibold">{{ active_users_count }}</div></div></div>
+    <div class="col-6 col-lg-3"><div class="card-ev p-3"><div class="text-muted font-sm">Pending approval</div><div class="fs-4 fw-semibold">{{ pending_users_count }}</div></div></div>
+    <div class="col-6 col-lg-3"><div class="card-ev p-3"><div class="text-muted font-sm">Deactivated</div><div class="fs-4 fw-semibold">{{ inactive_users_count }}</div></div></div>
+</div>
+
+<form method="get" class="row g-2 mb-3">
+    <div class="col-md-5"><input type="search" name="q" value="{{ current_q }}" class="form-control" placeholder="Search name or email" aria-label="Search users"></div>
+    <div class="col-md-3">
+        <select name="role" class="form-select" aria-label="Filter by role">
+            <option value="">All roles</option>
+            {% for value, label in roles %}<option value="{{ value }}" {% if value == current_role %}selected{% endif %}>{{ label }}</option>{% endfor %}
+        </select>
+    </div>
+    <div class="col-md-2"><button class="btn btn-ev-outline w-100" type="submit">Filter</button></div>
+</form>
+
+{% if users %}
+<div class="card-ev table-responsive">
+    <table class="table table-hover align-middle mb-0">
+        <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Status</th><th>Last login</th></tr></thead>
+        <tbody>
+        {% for u in users %}
+            <tr>
+                <td>{{ u.get_full_name|default:u.username }}</td>
+                <td>{{ u.email }}</td>
+                <td><span class="badge-role badge-role-{{ u.role|lower }}">{{ u.get_role_display }}</span></td>
+                <td>
+                    {% if not u.is_approved %}<span class="badge-ev badge-warning">Pending</span>
+                    {% elif not u.is_active %}<span class="badge-ev badge-danger">Deactivated</span>
+                    {% else %}<span class="badge-ev badge-success">Active</span>{% endif %}
+                </td>
+                <td class="font-sm text-muted">{{ u.last_login|date:"d M Y H:i"|default:"Never" }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% include 'partials/pagination.html' %}
+{% else %}
+    {% include 'partials/empty_state.html' with icon='bi-people' title='No users match' message='Try a different search or role filter.' %}
+{% endif %}
+{% endblock %}

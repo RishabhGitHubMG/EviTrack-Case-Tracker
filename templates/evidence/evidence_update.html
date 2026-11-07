@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block title %}Edit {{ evidence.evidence_no }} - EviTrack{% endblock %}
+{% block breadcrumbs %}
+<li><a href="{% url 'evidence:evidence_list' %}">Evidence Vault</a></li>
+<li><a href="{% url 'evidence:evidence_detail' evidence.pk %}">{{ evidence.evidence_no }}</a></li>
+<li class="active" aria-current="page">Edit</li>
+{% endblock %}
+
+{% block content %}
+<div class="page-header mb-4">
+    <h1 class="page-title">Edit Metadata</h1>
+    <p class="text-muted mb-0">File contents cannot be changed here. Upload a new version instead.</p>
+</div>
+<div class="card-ev p-4" style="max-width: 720px;">
+    <form method="post" novalidate>
+        {% csrf_token %}
+        {% for err in form.non_field_errors %}
+            <div class="alert alert-danger py-2 px-3 mb-3 font-sm" role="alert">{{ err }}</div>
+        {% endfor %}
+        <div class="row g-2">
+            {% for field in form %}<div class="col-md-6">{% include 'partials/form_field.html' %}</div>{% endfor %}
+        </div>
+        <button type="submit" class="btn btn-ev-primary">Save Changes</button>
+        <a href="{% url 'evidence:evidence_detail' evidence.pk %}" class="btn btn-ev-outline ms-2">Cancel</a>
+    </form>
+</div>
+{% endblock %}
