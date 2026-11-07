@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+
+{% block title %}Reports - EviTrack{% endblock %}
+{% block breadcrumbs %}<li class="active" aria-current="page">Reports</li>{% endblock %}
+
+{% block content %}
+<div class="page-header mb-4"><h1 class="page-title">Reports</h1><p class="text-muted mb-0">Generate audit-logged PDF reports for cases you can access.</p></div>
+{% if cases %}
+<div class="card-ev table-responsive">
+    <table class="table table-hover align-middle mb-0">
+        <thead><tr><th>Case</th><th>Case title</th><th>PDF reports</th></tr></thead>
+        <tbody>{% for case in cases %}
+            <tr>
+                <td class="font-mono fw-semibold">{{ case.case_no }}</td>
+                <td>{{ case.title }}</td>
+                <td class="d-flex flex-wrap gap-2">
+                    <a class="btn btn-ev-outline btn-sm" href="{% url 'reports:case_summary' case.pk %}">Case summary</a>
+                    <a class="btn btn-ev-outline btn-sm" href="{% url 'reports:evidence_register' case.pk %}">Evidence register</a>
+                    <a class="btn btn-ev-outline btn-sm" href="{% url 'reports:custody_history' case.pk %}">Custody history</a>
+                    <a class="btn btn-ev-outline btn-sm" href="{% url 'reports:hearing_schedule' case.pk %}">Hearing schedule</a>
+                    <a class="btn btn-ev-outline btn-sm" href="{% url 'reports:integrity_report' case.pk %}">Integrity report</a>
+                </td>
+            </tr>
+        {% endfor %}</tbody>
+    </table>
+</div>
+{% else %}
+    {% include 'partials/empty_state.html' with icon='bi-file-earmark-bar-graph' title='No accessible cases' message='Reports are available for cases assigned to you.' %}
+{% endif %}
+{% endblock %}

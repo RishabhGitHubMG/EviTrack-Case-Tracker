@@ -77,7 +77,11 @@ ARG_SOURCES = {
         'task_update': 'task', 'task_status': 'task',
         'user_approve': 'user', 'user_reject': 'user', 'user_role': 'user',
     },
-    'case_id': {'evidence_upload': 'case', 'evidence_bulk_verify': 'case', 'hearing_create': 'case', 'task_create': 'case'},
+    'case_id': {
+        'evidence_upload': 'case', 'evidence_bulk_verify': 'case', 'hearing_create': 'case', 'task_create': 'case',
+        'case_summary': 'case', 'evidence_register': 'case', 'custody_history': 'case',
+        'hearing_schedule': 'case', 'integrity_report': 'case',
+    },
     'evidence_id': {'custody_request': 'evidence', 'custody_timeline': 'evidence', 'custody_qr_label': 'evidence'},
     'party_id': {'party_update': 'party', 'party_delete': 'party'},
     'assignment_id': {'case_unassign': 'assignment'},
@@ -99,7 +103,7 @@ NON_HTML_OK_TYPES = {'application/json', 'image/png', 'application/pdf', 'text/c
 
 # Placeholder routes still awaiting a real view. Remove each entry when its view is built;
 # the test fails if a new placeholder appears or an entry here is already real.
-KNOWN_PLACEHOLDERS = {'audit:audit_log_list', 'audit:my_activity', 'reports:report_list'}
+KNOWN_PLACEHOLDERS = set()
 
 
 def _is_placeholder(response) -> bool:
