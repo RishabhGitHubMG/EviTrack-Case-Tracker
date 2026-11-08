@@ -21,6 +21,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import PermissionDenied
 from django.db.models import Q
 from django.utils import timezone
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse, reverse_lazy
@@ -605,8 +606,10 @@ class ApproveUserView(AdminRequiredMixin, View):
         send_approval_email(user)
 
         messages.success(request, f"Account for {user.get_full_name() or user.email} has been approved and activated.")
-        next_url = request.POST.get('next')
-        if next_url and next_url.startswith('/'):
+        next_url = request.POST.get('next', '')
+        if url_has_allowed_host_and_scheme(
+            next_url, allowed_hosts={request.get_host()}, require_https=request.is_secure()
+        ):
             return redirect(next_url)
         return redirect('accounts:user_approval')
 
@@ -637,8 +640,10 @@ class RejectUserView(AdminRequiredMixin, View):
         send_rejection_email(user, reason=reason)
 
         messages.warning(request, f"Account for {user.get_full_name() or user.email} has been rejected / deactivated.")
-        next_url = request.POST.get('next')
-        if next_url and next_url.startswith('/'):
+        next_url = request.POST.get('next', '')
+        if url_has_allowed_host_and_scheme(
+            next_url, allowed_hosts={request.get_host()}, require_https=request.is_secure()
+        ):
             return redirect(next_url)
         return redirect('accounts:user_approval')
 
