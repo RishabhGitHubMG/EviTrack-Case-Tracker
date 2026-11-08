@@ -1,0 +1,5 @@
+@media print {
+  body { background: #fff; color: #000; }
+  .no-print { display: none !important; }
+  .ui-card { break-inside: avoid; border-color: #bbb; box-shadow: none; }
+}

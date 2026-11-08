@@ -1,3 +1,5 @@
+import os
+
 from .development import *  # noqa: F401,F403
 
 DATABASES = {
@@ -15,5 +17,8 @@ CELERY_BROKER_URL = 'memory://'
 CELERY_RESULT_BACKEND = 'cache+memory://'
 
 EMAIL_BACKEND = 'django.core.mail.backends.locmem.EmailBackend'
+if os.environ.get('EVITRACK_PLAYWRIGHT_EMAIL_DIR'):
+    EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
+    EMAIL_FILE_PATH = os.environ['EVITRACK_PLAYWRIGHT_EMAIL_DIR']
 
 SECURE_SSL_REDIRECT = False
