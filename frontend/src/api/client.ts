@@ -4,6 +4,7 @@ export type ApiError = {
   message: string;
   fields?: Record<string, string[]> | null;
   retryAfter?: number | null;
+  attemptsLeft?: number;
 };
 
 const apiBase = import.meta.env.VITE_API_BASE ?? '/api/v1';
@@ -20,6 +21,7 @@ export async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
   const method = (init.method ?? 'GET').toUpperCase();
   const headers = new Headers(init.headers);
   if (unsafeMethods.has(method)) {
+    if (!cookie('csrftoken')) await api('/auth/csrf/');
     const token = cookie('csrftoken');
     if (token) headers.set('X-CSRFToken', decodeURIComponent(token));
   }
@@ -41,6 +43,7 @@ export async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
       message: body.message ?? 'The request could not be completed.',
       fields: body.fields,
       retryAfter: body.retry_after,
+      attemptsLeft: body.attempts_left,
     };
     if (response.status === 401) {
       window.dispatchEvent(new CustomEvent('evitrack:unauthorized'));
