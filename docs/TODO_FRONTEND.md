@@ -5,19 +5,19 @@ IDs: `FE-S<slice>-<n>`. Page visuals: `UI_SPEC.md` (section in brackets). Behavi
 ## S0 Foundations
 - [x] FE-S0-01 (H) Scaffold `frontend/` with Vite + React + TS strict; ESLint (react-hooks, jsx-a11y), Prettier, Vitest + RTL, Playwright config, `.env.example`, npm scripts (dev, build, preview, test, e2e, lint, api:types)
 - [x] FE-S0-02 (H) Tailwind + `styles/tokens.css` (all tokens, light/dark) + `globals.css` + `print.css`; self-hosted fonts (Inter, Source Serif 4, JetBrains Mono) [UI §0]
-- [ ] FE-S0-03 (H) Vite proxy `/api` and `/media-protected` → `localhost:8000` (not verified: proxy request command was blocked by shell policy)
+- [x] FE-S0-03 (H) Vite proxy `/api` and `/media-protected` → `localhost:8000` (`/api/v1/health/` returned 200 with `{"status":"ok"}`; `/media-protected/` reached Django and returned its expected root 404)
 - [x] FE-S0-04 (H) `api/client.ts` (CSRF, credentials, error normalisation, 401 handling), query-key factory, QueryClient defaults, `api:types` generation wired
 - [x] FE-S0-05 (H) Core `components/ui`: Button, Input, Textarea, Select, Checkbox, Switch, Card, Badge/Pill (status + priority variants), Skeleton, EmptyState, ErrorState, Tooltip, Toast, Dialog, ConfirmDialog, Dropdown, Tabs, Avatar, HashBadge + CopyButton, PasswordStrength, OtpInput
-- [ ] FE-S0-06 (M) Theme provider (class-based dark mode, no flash) and a `/design` dev-only route showing every component in light and dark (route rendered in preview; interactive theme persistence and light/dark component review not verified because Chromium is missing)
-- [ ] FE-S0-07 (M) Vitest tests for Button, Input error state, OtpInput, HashBadge copy; Playwright smoke config; GitHub-style `npm run check` (tsc + lint + test) (`npm run check` passes with 4 tests; Playwright smoke execution not verified because Chromium is missing)
+- [x] FE-S0-06 (M) Theme provider (class-based dark mode, no flash) and a `/design` dev-only route showing every component in light and dark (theme-before-bundle, persistence, and axe checks pass at desktop/mobile in both themes)
+- [x] FE-S0-07 (M) Vitest tests for Button, Input error state, OtpInput, HashBadge copy; Playwright smoke config; GitHub-style `npm run check` (tsc + lint + test) (`npm run check` passes with 4 Vitest tests; Playwright smoke passes)
 
 ## S1 Landing page [UI §2.1]
-- [ ] FE-S1-01 (H) `PublicLayout`: sticky nav with blur, logo, Features/How it works/Security anchors, Sign in + Request access, mobile menu (code present; mobile interaction not verified because Chromium is missing)
-- [ ] FE-S1-02 (H) Hero with gradient + grid pattern, serif headline, subtitle, two CTAs, product mock (code-built, no external images) (rendered in live preview; CTA interaction not verified because Chromium is missing)
-- [ ] FE-S1-03 (H) Trust strip (4 items), Problem vs Solution, Features grid (6 cards with hover lift) (code present; hover and mobile behavior not verified because Chromium is missing)
-- [ ] FE-S1-04 (H) How it works (3 steps with connector and small Verified→Modified animation), Security band, final CTA, footer with prototype note (code present; full scroll behavior not verified because Chromium is missing)
-- [ ] FE-S1-05 (M) Scroll fade-in (reduced-motion aware), smooth anchor scrolling, SEO tags (title, description, OG) (code present; motion and anchor checks not verified because Chromium is missing)
-- [ ] FE-S1-06 (H) Playwright: J1 first half (landing renders, CTAs navigate), mobile 390px layout, axe check, Lighthouse a11y ≥ 95 (not verified: Chromium executable is missing; no new screenshots saved)
+- [x] FE-S1-01 (H) `PublicLayout`: sticky nav with blur, logo, Features/How it works/Security anchors, Sign in + Request access, mobile menu
+- [x] FE-S1-02 (H) Hero with gradient + grid pattern, serif headline, subtitle, two CTAs, product mock (code-built, no external images)
+- [x] FE-S1-03 (H) Trust strip (4 items), Problem vs Solution, Features grid (6 cards with hover lift)
+- [x] FE-S1-04 (H) How it works (3 steps with connector and small Verified→Modified animation), Security band, final CTA, footer with prototype note
+- [x] FE-S1-05 (M) Scroll fade-in (reduced-motion aware), smooth anchor scrolling, SEO tags (title, description, OG)
+- [ ] FE-S1-06 (H) Playwright: J1 first half (landing renders, CTAs navigate), mobile 390px layout, axe check, Lighthouse a11y ≥ 95 (14 browser checks pass; axe reports no serious/critical violations; four light/dark screenshots saved; Lighthouse score not run)
 
 ## S2 Register, Login, OTP, TOTP [UI §2.2–2.5; UX J1, J2]
 - [ ] FE-S2-01 (H) `AuthLayout` (split screen, hidden art on mobile)
