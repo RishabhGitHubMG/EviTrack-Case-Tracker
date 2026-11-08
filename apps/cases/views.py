@@ -260,6 +260,7 @@ class CaseDetailView(LoginRequiredMixin, CaseAccessMixin, DetailView):
         is_manager_or_admin = getattr(user, 'is_admin', False) or getattr(user, 'is_case_manager', False)
         is_lead = assignments.filter(user=user, role_on_case=CaseAssignment.RoleOnCase.LEAD).exists()
         context['can_manage'] = is_manager_or_admin or is_lead
+        context['can_assign'] = is_manager_or_admin
         context['is_reviewer'] = getattr(user, 'is_reviewer', False)
 
         # Inline/Modal Forms
@@ -321,7 +322,7 @@ class CaseAssignView(LoginRequiredMixin, CaseManagerOrAdminMixin, ReadOnlyMixin,
             for field, errs in form.errors.items():
                 messages.error(request, f"Assignment Error ({field}): {errs.as_text()}")
 
-        return redirect(f"{reverse('cases:case_detail', kwargs={'pk': pk})}#overview")
+        return redirect(f"{reverse('cases:case_detail', kwargs={'pk': pk})}?tab=team#team")
 
 
 class CaseUnassignView(LoginRequiredMixin, CaseManagerOrAdminMixin, ReadOnlyMixin, CaseAccessMixin, View):
@@ -353,7 +354,7 @@ class CaseUnassignView(LoginRequiredMixin, CaseManagerOrAdminMixin, ReadOnlyMixi
         )
 
         messages.success(request, f"Removed {assigned_user} from case assignments.")
-        return redirect(f"{reverse('cases:case_detail', kwargs={'pk': pk})}#overview")
+        return redirect(f"{reverse('cases:case_detail', kwargs={'pk': pk})}?tab=team#team")
 
 
 class PartyCreateView(LoginRequiredMixin, ReadOnlyMixin, CaseAccessMixin, View):

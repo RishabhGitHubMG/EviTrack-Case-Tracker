@@ -1,6 +1,6 @@
 # EviTrack Frontend Inventory
 
-Session 13. Source: `evitrack/urls.py` and `apps/*/urls.py` (URL names), `templates/` (template existence), and targeted reads of templates and views. Browser checks are Step 4 and are not yet run, so the "Mobile" and "Browser" columns say "not run" until Step 4 records results.
+Session 15. Source: `evitrack/urls.py` and `apps/*/urls.py` (URL names), `templates/` (template existence), and targeted reads of templates and views. Browser checks are Step 4 and are not yet run, so the "Mobile" and "Browser" columns say "not run" until Step 4 records results.
 
 Status legend: **Complete** (template exists, feature wired, code-checked) · **Partial** (exists, with a gap listed) · **Missing** (no screen) · **Broken** (renders incorrectly or fails).
 
@@ -48,9 +48,9 @@ Shell status: sidebar and topbar share `templates/partials/`. Every authenticate
 |---|---|---|---|---|---|
 | `cases:case_list` | `/cases/` | `cases/case_list.html` | Sidebar | Column header sort links append a duplicate `sort`/`dir` query; no empty-state action; no loading state | Partial |
 | `cases:case_create` | `/cases/create/` | `cases/case_create.html` (extends case_form) | List "New Case" | none found in review | Complete (code) |
-| `cases:case_detail` | `/cases/<pk>/` | `cases/case_detail.html` | List rows, search, dashboard | Nine tabs (Overview, Parties, Evidence, Custody, Hearings, Tasks, Team, Timeline, Audit). No bulk verify control on Evidence tab. Assign/unassign UI not checked. | Partial |
+| `cases:case_detail` | `/cases/<pk>/` | `cases/case_detail.html` | List rows, search, dashboard | Nine tabs (Overview, Parties, Evidence, Custody, Hearings, Tasks, Team, Timeline, Audit). Case Managers/Admins can bulk verify evidence; assignment controls match endpoint permissions. | Partial |
 | `cases:case_update` | `/cases/<pk>/edit/` | `cases/case_update.html` | Case detail | Status dropdown limited to allowed transitions (form logic) | Complete (code) |
-| `cases:case_assign`, `case_unassign` | POST | view redirects | Team tab (not verified) | Assign UI not verified | Partial |
+| `cases:case_assign`, `case_unassign` | POST | view redirects | Team tab | Case Managers/Admins can assign/remove; successful actions return to Team. Leads cannot assign despite case-edit privileges. Manager flow and lead denial tests pass. | Complete (code) |
 | `cases:party_create`, `party_update`, `party_delete` | forms | `cases/party_form.html`, `cases/party_confirm_delete.html` | Parties tab | Party create form is inside the tab | Complete (code) |
 | `cases:case_timeline` | `/cases/<pk>/timeline/` | `cases/case_timeline.html`, `partials/timeline_content.html` | Timeline tab | none found in review | Complete (code) |
 
@@ -58,7 +58,7 @@ Shell status: sidebar and topbar share `templates/partials/`. Every authenticate
 
 | URL name | Path | Template | Linked from | Gaps | Status |
 |---|---|---|---|---|---|
-| `evidence:evidence_list` | `/evidence/` | `evidence/evidence_list.html` | Sidebar | Filters and tag filter to confirm in Step 2 | Partial |
+| `evidence:evidence_list` | `/evidence/` | `evidence/evidence_list.html` | Sidebar | Search, case, status, and tag filters; available tags are scoped to accessible cases. Filter tests pass; browser not verified. | Complete (code) |
 | `evidence:evidence_upload_generic` | `/evidence/upload/` | `evidence/evidence_upload.html` | Evidence list | Single progress bar for the whole batch; no per-file progress; no drag-and-drop zone; response written with `document.write` | Partial |
 | `evidence:evidence_upload` | `/evidence/upload/<case_id>/` | `evidence/evidence_upload.html` | Case Evidence tab | Same as above | Partial |
 | `evidence:evidence_detail` | `/evidence/<pk>/` | `evidence/evidence_detail.html` | List, search, case tab | Verify result is not shown (page reloads); badge shows raw result text, not green Verified or red Modified; no hash copy button (SHA-256 shown as plain text); preview for image, PDF, audio, video exists | Partial |
@@ -67,7 +67,7 @@ Shell status: sidebar and topbar share `templates/partials/`. Every authenticate
 | `evidence:evidence_verify` | POST | JSON | Detail "Verify Integrity" (JS reloads page) | Result not shown inline | Partial |
 | `evidence:evidence_qr` | `/evidence/<pk>/qr/` | `evidence/evidence_qr_label.html` | Detail | Browser print not run | Complete (code) |
 | `evidence:evidence_preview` | `/evidence/<pk>/preview/` | file response | Detail preview | none found in review | Complete (code) |
-| `evidence:evidence_bulk_verify` | `/evidence/case/<case_id>/bulk-verify/` | POST | No button found in templates | No UI control | Missing |
+| `evidence:evidence_bulk_verify` | `/evidence/case/<case_id>/bulk-verify/` | POST | Case Evidence tab | Case Managers/Admins see the CSRF-protected action; queued/synchronous feedback returns to Evidence. Reviewers and inaccessible users are denied. Tests pass; browser not verified. | Complete (code) |
 
 ### 1f. Custody
 
@@ -163,16 +163,18 @@ Tables in sections 1 and 2 reflect the Step 1 inventory. These changes are done 
 | Sidebar admin links | Approval Queue and Failed Logins added | Complete (code) |
 | Dashboard charts | Added cases by type, hearings per week, open tasks per team member, evidence uploads per week | Complete (code), 3 tests |
 
-Still open in Step 2:
+Still open after Step 2 batches 1 and 2:
 
-- Evidence list tag filter: not confirmed.
-- Bulk verify control on the case Evidence tab: no button yet (`evidence:evidence_bulk_verify` exists).
-- Case assign and unassign UI: not verified.
-- Mobile and desktop checks of all changed pages: Step 4.
+- Audit/admin page review, remaining partial account/case screen review, and report-page verification (TODO T7–T10).
+- Mobile and desktop checks of all changed pages: Step 4; Playwright unavailable in session 15.
 
 ## 4b. Step 2, batch 2 (session 14)
 
 Added the dedicated notification preferences page using existing user preference fields, with an additive migration for defaults and rescheduling of pending reminders after changes. The calendar now supports case-scoped hearing creation, date prefill from clicked dates, and event-to-detail/edit navigation. Notification listing now filters by read state and type. Targeted tests passed (19 account/reminder, 5 calendar including reviewer restrictions, 15 notification tests); full suite passed (147 tests), `manage.py check`, migration check, and Node syntax check passed. Browser checks are not verified because Playwright is unavailable in this environment.
+
+## 4c. Step 2, batch 3 (session 15)
+
+Added the evidence tag selector (the backend filter already existed), tested matching results and tag scoping to accessible cases; added case Evidence bulk verification with CSRF, correct tab return, and reviewer/inaccessible-case denial; reconciled assignment visibility with Case Manager/Admin endpoint permissions and tested manager assign/remove plus case-lead denial. Targeted tests passed (7 evidence-page, 5 integrity, 2 assignment); full suite passed (153 tests), with Django and migration checks clean. Browser verification is not verified because Playwright is unavailable.
 
 ## 5. Blocked commands
 

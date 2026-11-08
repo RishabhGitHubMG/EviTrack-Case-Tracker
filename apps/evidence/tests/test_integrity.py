@@ -2,6 +2,7 @@ import hashlib
 from pathlib import Path
 
 import pytest
+from unittest.mock import patch
 from django.urls import reverse
 
 from apps.accounts.models import User
@@ -74,3 +75,30 @@ def test_bulk_verify_task_alerts_case_manager_on_tamper(stored_evidence):
     assert Notification.objects.filter(
         user=world['manager'], notification_type=Notification.NotificationType.DANGER,
     ).exists()
+
+
+def test_case_evidence_tab_dispatches_bulk_verification(stored_evidence, client_for):
+    world = stored_evidence
+    client = client_for(world['manager'])
+    page = client.get(reverse('cases:case_detail', kwargs={'pk': world['case'].pk}), {'tab': 'evidence'})
+    url = reverse('evidence:evidence_bulk_verify', kwargs={'case_id': world['case'].pk})
+
+    assert page.status_code == 200
+    assert f'action="{url}"'.encode() in page.content
+    with patch('apps.evidence.tasks.verify_case_evidence_task.delay') as dispatch:
+        response = client.post(url)
+
+    assert response.status_code == 302
+    assert response['Location'] == f"{reverse('cases:case_detail', kwargs={'pk': world['case'].pk})}?tab=evidence#evidence"
+    dispatch.assert_called_once_with(world['case'].pk, world['manager'].pk)
+
+
+def test_bulk_verification_rejects_reviewer_and_inaccessible_case(stored_evidence, make_user, client_for):
+    world = stored_evidence
+    reviewer = make_user(role=User.Role.REVIEWER)
+    world['case'].assignments.create(user=reviewer)
+    url = reverse('evidence:evidence_bulk_verify', kwargs={'case_id': world['case'].pk})
+
+    assert client_for(reviewer).post(url).status_code == 403
+    outsider = make_user()
+    assert client_for(outsider).post(url).status_code == 403

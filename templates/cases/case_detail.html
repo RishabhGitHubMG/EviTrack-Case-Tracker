@@ -24,7 +24,7 @@
     <li class="nav-item"><a class="nav-link {% if active_tab == 'custody' %}active{% endif %}" href="?tab=custody">Custody</a></li>
     <li class="nav-item"><a class="nav-link {% if active_tab == 'hearings' %}active{% endif %}" href="?tab=hearings">Hearings</a></li>
     <li class="nav-item"><a class="nav-link {% if active_tab == 'tasks' %}active{% endif %}" href="?tab=tasks">Tasks</a></li>
-    <li class="nav-item"><a class="nav-link {% if active_tab == 'team' %}active{% endif %}" href="?tab=team">Team</a></li>
+    <li class="nav-item" id="team"><a class="nav-link {% if active_tab == 'team' %}active{% endif %}" href="?tab=team">Team</a></li>
     <li class="nav-item"><a class="nav-link {% if active_tab == 'timeline' %}active{% endif %}" href="?tab=timeline">Timeline</a></li>
     <li class="nav-item"><a class="nav-link {% if active_tab == 'audit' %}active{% endif %}" href="?tab=audit">Audit</a></li>
 </ul>
@@ -88,8 +88,16 @@
     {% endif %}
 
 {% elif active_tab == 'evidence' %}
-    <div class="d-flex justify-content-end mb-3">
+    <div id="evidence" class="d-flex justify-content-end flex-wrap gap-2 mb-3">
+        {% if can_manage and evidence_items %}
+        <form method="post" action="{% url 'evidence:evidence_bulk_verify' case.pk %}" class="mb-0">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-ev-outline btn-sm"><i class="bi bi-shield-check"></i> Verify All Evidence</button>
+        </form>
+        {% endif %}
+        {% if not is_reviewer %}
         <a href="{% url 'evidence:evidence_upload' case.pk %}" class="btn btn-ev-primary btn-sm"><i class="bi bi-upload"></i> Upload Evidence</a>
+        {% endif %}
     </div>
     {% if evidence_items %}
     <div class="card-ev table-responsive">
@@ -176,7 +184,7 @@
     {% endif %}
 
 {% elif active_tab == 'team' %}
-    {% if can_manage %}
+    {% if can_assign %}
     <div class="card-ev p-4 mb-3">
         <h2 class="h6">Assign user</h2>
         <form method="post" action="{% url 'cases:case_assign' case.pk %}" class="row g-2 align-items-end" novalidate>
@@ -196,7 +204,7 @@
                     <td class="font-sm">{{ a.get_role_on_case_display }}</td>
                     <td class="font-sm text-muted">{{ a.assigned_on|date:"d M Y" }}</td>
                     <td class="text-end">
-                        {% if can_manage %}
+                        {% if can_assign %}
                         <form method="post" action="{% url 'cases:case_unassign' case.pk a.pk %}" class="d-inline">
                             {% csrf_token %}
                             <button type="submit" class="btn btn-sm btn-ev-outline">Remove</button>

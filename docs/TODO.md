@@ -6,9 +6,9 @@ Tasks are ordered by priority, then by dependency. A task is complete only after
 - [x] T1 — [High] Add notification preferences (reminder timing and channels), migration, scheduler integration, page, and tests. Note: targeted account/reminder tests passed (19); migration applied; Playwright browser check not verified because Playwright is unavailable in the environment.
 - [x] T2 — [High] Add hearing create/edit actions from the calendar and verify both flows. Note: case-scoped schedule control and date-click prefill added; detail/edit route tests passed (5), including read-only reviewer restrictions; Playwright browser check not verified because Playwright is unavailable.
 - [x] T3 — [High] Add read-state and notification-type filters; test them. Note: all/read/unread and type filters, combined filters, and invalid-value behavior pass notification tests (15).
-- [ ] T4 — [High] Confirm and, if needed, fix the evidence-list tag filter; test filtered results. Note: pending.
-- [ ] T5 — [High] Add a bulk-verify control to the case Evidence tab and verify the result. Note: pending.
-- [ ] T6 — [High] Check and verify case assign/unassign controls and access behavior. Note: pending.
+- [x] T4 — [High] Confirm and, if needed, fix the evidence-list tag filter; test filtered results. Note: filter backend was wired but the UI control was missing; added the tag selector and verified matching results and inaccessible-tag scoping (7 evidence-page tests passed).
+- [x] T5 — [High] Add a bulk-verify control to the case Evidence tab and verify the result. Note: case managers see the CSRF-protected action, queue confirmation returns to the Evidence tab, and reviewer/inaccessible-case POSTs are denied; evidence page/integrity tests passed (12).
+- [x] T6 — [High] Check and verify case assign/unassign controls and access behavior. Note: forms now appear only for Case Managers/Admins as required by the endpoints; manager assign/remove succeeds and returns to Team; case-lead UI/POST is denied (2 tests passed).
 - [ ] T7 — [Medium] Check audit/admin screens and navigation, including approval queue, failed logins, security settings, and audit-chain verification. Note: pending.
 - [ ] T8 — [Medium] Review remaining partial account and case screens for required actions, empty/error states, and route usability; fix and test confirmed gaps. Note: pending.
 - [ ] T9 — [Medium] Verify the five PDF reports through the reports page and check the required case-picker/list behavior. Note: pending.
