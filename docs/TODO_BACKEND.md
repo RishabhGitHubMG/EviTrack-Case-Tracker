@@ -3,13 +3,13 @@
 Priority: **H** high, **M** medium, **L** low. IDs: `BE-S<slice>-<n>`. Requirement refs in brackets point to `SPEC.md`.
 
 ## S0 Foundations
-- [ ] BE-S0-01 (H) Add `drf-spectacular`, `django-filter`; configure `REST_FRAMEWORK` (session auth, pagination, filters, default permissions) and `SPECTACULAR_SETTINGS`
-- [ ] BE-S0-02 (H) Create `config/api_urls.py` mounted at `/api/v1/`; add `GET /health/`, `GET /auth/csrf/`, schema endpoint
-- [ ] BE-S0-03 (H) Custom exception handler producing the standard error shape and codes
-- [ ] BE-S0-04 (H) Shared permission classes: `IsApprovedUser`, `HasRole`, `CaseObjectPermission` (reuse existing access helpers)
-- [ ] BE-S0-05 (M) Shared pagination class and `UserRef`/`CaseRef` serializers
-- [ ] BE-S0-06 (M) Test settings: file-based email backend for Playwright OTP (test/dev only, impossible in production settings) + helper docs
-- [ ] BE-S0-07 (M) Tests: health, csrf, error shape, 401 shape; schema generation test
+- [x] BE-S0-01 (H) Add `drf-spectacular`, `django-filter`; configure `REST_FRAMEWORK` (session auth, pagination, filters, default permissions) and `SPECTACULAR_SETTINGS`
+- [x] BE-S0-02 (H) Mount `/api/v1/` routes through the existing `evitrack/urls.py` and `apps/core/api/`; add health, CSRF, and schema endpoints
+- [x] BE-S0-03 (H) Custom exception handler producing the standard error shape and codes
+- [x] BE-S0-04 (H) Shared permission classes: `IsApprovedUser`, `HasRole`, `CaseObjectPermission` (reuse existing access helpers)
+- [x] BE-S0-05 (M) Shared pagination class and `UserRef`/`CaseRef` serializers
+- [ ] BE-S0-06 (M) Test settings: file-based email backend for Playwright OTP (test/dev only, impossible in production settings) + helper docs (not verified: production settings check could not initialize because the environment lacks psycopg)
+- [x] BE-S0-07 (M) Tests: health, csrf, error shape, 401 shape; schema generation test
 
 ## S1 Landing
 - [ ] BE-S1-01 (L) Nothing required. Confirm `/` is not captured by any API route and legacy landing still works

@@ -23,3 +23,7 @@ class CaseRefSerializer(serializers.ModelSerializer):
     class Meta:
         model = Case
         fields = ('id', 'case_no', 'title')
+
+
+class StatusSerializer(serializers.Serializer):
+    status = serializers.CharField()

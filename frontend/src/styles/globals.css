@@ -28,6 +28,7 @@ button { cursor: pointer; }
 .ui-button--lg { min-height: 48px; padding: 10px 18px; }
 .ui-field { display: grid; gap: 6px; }
 .ui-field__label { font-weight: 600; }
+.ui-required { color: var(--danger); }
 .ui-input, .ui-select { width: 100%; min-height: 40px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); color: var(--text); padding: 8px 10px; }
 .ui-input:focus-visible, .ui-select:focus-visible { border-color: var(--navy-700); box-shadow: 0 0 0 2px color-mix(in srgb, var(--amber-500) 55%, transparent); }
 .ui-input--error { border-color: var(--danger); }
@@ -42,12 +43,18 @@ button { cursor: pointer; }
 .ui-switch[data-state='checked'] { background: var(--navy-700); }
 .ui-switch__thumb { display: block; width: 18px; height: 18px; border-radius: 50%; background: white; transition: transform 150ms; }
 .ui-switch[data-state='checked'] .ui-switch__thumb { transform: translateX(18px); }
-.ui-badge { display: inline-flex; align-items: center; border-radius: 999px; background: #e2e8f0; color: #334155; padding: 3px 9px; font-size: 12px; font-weight: 600; }
+.ui-badge { display: inline-flex; align-items: center; gap: 4px; border-radius: 999px; background: #e2e8f0; color: #334155; padding: 3px 9px; font-size: 12px; font-weight: 600; }
 .ui-pill--verified, .ui-pill--accepted, .ui-pill--completed { background: #dcfce7; color: #166534; }
-.ui-pill--modified, .ui-pill--rejected, .ui-pill--overdue { background: #fee2e2; color: #991b1b; }
-.ui-pill--pending, .ui-pill--due-soon { background: #fef3c7; color: #78350f; }
-.ui-pill--open, .ui-pill--in-court { background: #dbeafe; color: #1e3a8a; }
+.ui-pill--modified, .ui-pill--rejected, .ui-pill--overdue, .ui-pill--critical { background: #fee2e2; color: #991b1b; }
+.ui-pill--pending, .ui-pill--due-soon, .ui-pill--under-investigation, .ui-pill--high { background: #fef3c7; color: #78350f; }
+.ui-pill--open, .ui-pill--in-court, .ui-pill--medium { background: #dbeafe; color: #1e3a8a; }
+.ui-pill--closed, .ui-pill--low, .ui-pill--archived { background: #f1f5f9; color: #475569; }
 .dark .ui-badge { background: #334155; color: #e2e8f0; }
+.dark .ui-pill--verified, .dark .ui-pill--accepted, .dark .ui-pill--completed { background: #14532d; color: #dcfce7; }
+.dark .ui-pill--modified, .dark .ui-pill--rejected, .dark .ui-pill--overdue, .dark .ui-pill--critical { background: #7f1d1d; color: #fee2e2; }
+.dark .ui-pill--pending, .dark .ui-pill--due-soon, .dark .ui-pill--under-investigation, .dark .ui-pill--high { background: #713f12; color: #fef3c7; }
+.dark .ui-pill--open, .dark .ui-pill--in-court, .dark .ui-pill--medium { background: #1e3a8a; color: #dbeafe; }
+.dark .ui-pill--closed, .dark .ui-pill--low, .dark .ui-pill--archived { background: #334155; color: #e2e8f0; }
 .ui-skeleton { min-height: 16px; border-radius: 6px; background: linear-gradient(90deg, var(--border), var(--bg), var(--border)); background-size: 200% 100%; animation: shimmer 1.4s ease infinite; }
 .skeleton-line { width: 70%; height: 18px; }
 .ui-state { display: grid; justify-items: center; gap: 8px; padding: 14px; text-align: center; }
@@ -85,5 +92,7 @@ button { cursor: pointer; }
 .inline-control { display: inline-flex; align-items: center; gap: 8px; }
 .field-help { margin: 0; font-size: 12px; }
 @keyframes shimmer { to { background-position: -200% 0; } }
-@media (max-width: 640px) { .design-page { padding: 20px 16px 40px; } .design-page__header { align-items: start; flex-direction: column; } .design-grid { grid-template-columns: 1fr; } .ui-otp { gap: 5px; } .ui-otp input { width: min(44px, 13vw); height: 44px; } }
-@media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; } }
+@media (max-width: 640px) { .design-page { padding: 20px 16px 40px; } .design-page__header { align-items: start; flex-direction: column; } .design-grid { grid-template-columns: 1fr; } .ui-button { min-height: 44px; } .ui-otp { gap: 5px; } .ui-otp input { width: min(44px, 13vw); height: 44px; } }
+.ui-button__spinner { animation: spin 900ms linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } .ui-skeleton, .ui-button__spinner { animation: none; } .ui-button, .ui-switch__thumb { transition: none; } }

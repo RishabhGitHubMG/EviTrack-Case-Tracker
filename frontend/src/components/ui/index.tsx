@@ -5,7 +5,7 @@ import * as SwitchPrimitive from '@radix-ui/react-switch';
 import * as TabsPrimitive from '@radix-ui/react-tabs';
 import * as ToastPrimitive from '@radix-ui/react-toast';
 import * as TooltipPrimitive from '@radix-ui/react-tooltip';
-import { Check, ChevronDown, CircleAlert, Copy, X } from 'lucide-react';
+import { Archive, Check, ChevronDown, Circle, CircleAlert, CircleCheck, Clock3, Copy, LoaderCircle, TriangleAlert, X } from 'lucide-react';
 import {
   createContext,
   forwardRef,
@@ -23,27 +23,28 @@ const cn = (...values: Array<string | undefined | false>) => values.filter(Boole
 export type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
   variant?: 'primary' | 'accent' | 'secondary' | 'danger' | 'ghost';
   size?: 'sm' | 'md' | 'lg';
+  loading?: boolean;
 };
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button(
-  { className, variant = 'primary', size = 'md', ...props },
+  { className, variant = 'primary', size = 'md', loading = false, children, disabled, ...props },
   ref,
 ) {
-  return <button ref={ref} className={cn('ui-button', `ui-button--${variant}`, `ui-button--${size}`, className)} {...props} />;
+  return <button ref={ref} className={cn('ui-button', `ui-button--${variant}`, `ui-button--${size}`, className)} disabled={disabled || loading} aria-busy={loading || undefined} {...props}>{loading && <LoaderCircle className="ui-button__spinner" size={16} aria-hidden="true" />}{children}</button>;
 });
 
 export type InputProps = InputHTMLAttributes<HTMLInputElement> & { label?: string; error?: string };
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
-  { id, label, error, className, ...props },
+  { id, label, error, className, required, ...props },
   ref,
 ) {
   const inputId = id ?? props.name;
   const errorId = error && inputId ? `${inputId}-error` : undefined;
   return (
     <label className="ui-field" htmlFor={inputId}>
-      {label && <span className="ui-field__label">{label}</span>}
-      <input ref={ref} id={inputId} className={cn('ui-input', error && 'ui-input--error', className)} aria-invalid={Boolean(error)} aria-describedby={errorId} {...props} />
+      {label && <span className="ui-field__label">{label}{required && <span className="ui-required" aria-hidden="true"> *</span>}</span>}
+      <input ref={ref} id={inputId} required={required} className={cn('ui-input', error && 'ui-input--error', className)} aria-invalid={Boolean(error)} aria-describedby={errorId} {...props} />
       {error && <span className="ui-field__error" id={errorId}><CircleAlert size={14} aria-hidden="true" />{error}</span>}
     </label>
   );
@@ -52,15 +53,15 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
 export type TextareaProps = TextareaHTMLAttributes<HTMLTextAreaElement> & { label?: string; error?: string };
 
 export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(function Textarea(
-  { id, label, error, className, ...props },
+  { id, label, error, className, required, ...props },
   ref,
 ) {
   const inputId = id ?? props.name;
   const errorId = error && inputId ? `${inputId}-error` : undefined;
   return (
     <label className="ui-field" htmlFor={inputId}>
-      {label && <span className="ui-field__label">{label}</span>}
-      <textarea ref={ref} id={inputId} className={cn('ui-input ui-textarea', error && 'ui-input--error', className)} aria-invalid={Boolean(error)} aria-describedby={errorId} {...props} />
+      {label && <span className="ui-field__label">{label}{required && <span className="ui-required" aria-hidden="true"> *</span>}</span>}
+      <textarea ref={ref} id={inputId} required={required} className={cn('ui-input ui-textarea', error && 'ui-input--error', className)} aria-invalid={Boolean(error)} aria-describedby={errorId} {...props} />
       {error && <span className="ui-field__error" id={errorId}><CircleAlert size={14} aria-hidden="true" />{error}</span>}
     </label>
   );
@@ -110,8 +111,28 @@ export function Badge({ className, ...props }: React.HTMLAttributes<HTMLSpanElem
   return <span className={cn('ui-badge', className)} {...props} />;
 }
 
+const pillIcons = {
+  accepted: CircleCheck,
+  archived: Archive,
+  closed: Circle,
+  completed: CircleCheck,
+  critical: TriangleAlert,
+  due: Clock3,
+  'due-soon': Clock3,
+  high: TriangleAlert,
+  'in-court': CircleCheck,
+  modified: TriangleAlert,
+  open: Circle,
+  overdue: TriangleAlert,
+  pending: Clock3,
+  rejected: CircleAlert,
+  verified: CircleCheck,
+} as const;
+
 export function Pill({ value, className, ...props }: React.HTMLAttributes<HTMLSpanElement> & { value: string }) {
-  return <Badge className={cn('ui-pill', `ui-pill--${value.toLowerCase().replaceAll(' ', '-')}`, className)} {...props}>{value}</Badge>;
+  const key = value.toLowerCase().replaceAll(' ', '-');
+  const Icon = pillIcons[key as keyof typeof pillIcons] ?? Circle;
+  return <Badge className={cn('ui-pill', `ui-pill--${key}`, className)} {...props}><Icon size={13} aria-hidden="true" />{value}</Badge>;
 }
 
 export function Skeleton({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {

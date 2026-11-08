@@ -1,5 +1,10 @@
+import logging
+
 from rest_framework.exceptions import AuthenticationFailed, NotAuthenticated, NotFound, PermissionDenied, Throttled, ValidationError
+from rest_framework.response import Response
 from rest_framework.views import exception_handler
+
+logger = logging.getLogger(__name__)
 
 
 ERROR_CODES = {
@@ -14,7 +19,16 @@ ERROR_CODES = {
 def api_exception_handler(exc, context):
     response = exception_handler(exc, context)
     if response is None:
-        return response
+        logger.exception('Unhandled API exception', exc_info=exc)
+        return Response(
+            {
+                'code': 'server_error',
+                'message': 'The request could not be completed.',
+                'fields': None,
+                'retry_after': None,
+            },
+            status=500,
+        )
 
     status_code = response.status_code
     code = ERROR_CODES.get(status_code, 'server_error')

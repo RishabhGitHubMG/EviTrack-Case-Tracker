@@ -6,18 +6,21 @@ import { Button, HashBadge, Input, OtpInput, ToastProvider } from './index';
 afterEach(() => vi.restoreAllMocks());
 
 describe('Button', () => {
-  it('supports disabled actions', async () => {
+  it('supports disabled and loading actions', async () => {
     const user = userEvent.setup();
     const onClick = vi.fn();
-    render(<Button disabled onClick={onClick}>Save</Button>);
+    render(<><Button disabled onClick={onClick}>Save</Button><Button loading>Saving</Button></>);
     await user.click(screen.getByRole('button', { name: 'Save' }));
+    const loadingButton = screen.getByRole('button', { name: 'Saving' });
     expect(onClick).not.toHaveBeenCalled();
+    expect(loadingButton).toBeDisabled();
+    expect(loadingButton).toHaveAttribute('aria-busy', 'true');
   });
 });
 
 describe('Input', () => {
   it('connects the inline error to the field', () => {
-    render(<Input label="Case title" name="title" error="A title is required" />);
+    render(<Input label="Case title" name="title" required error="A title is required" />);
     const input = screen.getByRole('textbox', { name: /Case title/ });
     expect(input).toHaveAttribute('aria-invalid', 'true');
     expect(input).toHaveAccessibleDescription('A title is required');

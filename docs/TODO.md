@@ -7,7 +7,7 @@ Update the table after every batch. A slice is **Done** only when its Definition
 
 | Slice | Journey step | Backend | Frontend | Slice status |
 |---|---|---|---|---|
-| S0 | Foundations | 0/7 | 0/7 | Not started |
+| S0 | Foundations | 6/7 | 4/7 | In progress |
 | S1 | Landing page | 0/1 | 0/6 | Not started |
 | S2 | Register, Login, OTP, TOTP | 0/8 | 0/9 | Not started |
 | S3 | App shell | 0/5 | 0/9 | Not started |

@@ -87,6 +87,7 @@ AUTHENTICATION_BACKENDS = [
 ]
 
 ROOT_URLCONF = 'evitrack.urls'
+CSRF_FAILURE_VIEW = 'apps.core.api.csrf.csrf_failure'
 
 TEMPLATES = [
     {

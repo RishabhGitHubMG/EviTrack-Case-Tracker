@@ -3,13 +3,13 @@
 IDs: `FE-S<slice>-<n>`. Page visuals: `UI_SPEC.md` (section in brackets). Behaviour: `UX.md`. Every page needs loading, empty, error and success states. Archive the old `docs/FRONTEND.md` to `docs/archive/` first.
 
 ## S0 Foundations
-- [ ] FE-S0-01 (H) Scaffold `frontend/` with Vite + React + TS strict; ESLint (react-hooks, jsx-a11y), Prettier, Vitest + RTL, Playwright config, `.env.example`, npm scripts (dev, build, preview, test, e2e, lint, api:types)
-- [ ] FE-S0-02 (H) Tailwind + `styles/tokens.css` (all tokens, light/dark) + `globals.css` + `print.css`; self-hosted fonts (Inter, Source Serif 4, JetBrains Mono) [UI §0]
-- [ ] FE-S0-03 (H) Vite proxy `/api` and `/media-protected` → `localhost:8000`
-- [ ] FE-S0-04 (H) `api/client.ts` (CSRF, credentials, error normalisation, 401 handling), query-key factory, QueryClient defaults, `api:types` generation wired
-- [ ] FE-S0-05 (H) Core `components/ui`: Button, Input, Textarea, Select, Checkbox, Switch, Card, Badge/Pill (status + priority variants), Skeleton, EmptyState, ErrorState, Tooltip, Toast, Dialog, ConfirmDialog, Dropdown, Tabs, Avatar, HashBadge + CopyButton, PasswordStrength, OtpInput
-- [ ] FE-S0-06 (M) Theme provider (class-based dark mode, no flash) and a `/design` dev-only route showing every component in light and dark
-- [ ] FE-S0-07 (M) Vitest tests for Button, Input error state, OtpInput, HashBadge copy; Playwright smoke config; GitHub-style `npm run check` (tsc + lint + test)
+- [x] FE-S0-01 (H) Scaffold `frontend/` with Vite + React + TS strict; ESLint (react-hooks, jsx-a11y), Prettier, Vitest + RTL, Playwright config, `.env.example`, npm scripts (dev, build, preview, test, e2e, lint, api:types)
+- [x] FE-S0-02 (H) Tailwind + `styles/tokens.css` (all tokens, light/dark) + `globals.css` + `print.css`; self-hosted fonts (Inter, Source Serif 4, JetBrains Mono) [UI §0]
+- [ ] FE-S0-03 (H) Vite proxy `/api` and `/media-protected` → `localhost:8000` (not verified: proxy request command was blocked by shell policy)
+- [x] FE-S0-04 (H) `api/client.ts` (CSRF, credentials, error normalisation, 401 handling), query-key factory, QueryClient defaults, `api:types` generation wired
+- [x] FE-S0-05 (H) Core `components/ui`: Button, Input, Textarea, Select, Checkbox, Switch, Card, Badge/Pill (status + priority variants), Skeleton, EmptyState, ErrorState, Tooltip, Toast, Dialog, ConfirmDialog, Dropdown, Tabs, Avatar, HashBadge + CopyButton, PasswordStrength, OtpInput
+- [ ] FE-S0-06 (M) Theme provider (class-based dark mode, no flash) and a `/design` dev-only route showing every component in light and dark (not verified: browser unavailable because Chromium is missing)
+- [ ] FE-S0-07 (M) Vitest tests for Button, Input error state, OtpInput, HashBadge copy; Playwright smoke config; GitHub-style `npm run check` (tsc + lint + test) (not verified: Playwright could not launch because Chromium is missing)
 
 ## S1 Landing page [UI §2.1]
 - [ ] FE-S1-01 (H) `PublicLayout`: sticky nav with blur, logo, Features/How it works/Security anchors, Sign in + Request access, mobile menu

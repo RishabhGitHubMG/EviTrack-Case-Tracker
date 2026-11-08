@@ -31,7 +31,11 @@ urlpatterns = [
     path('reports/', include('apps.reports.urls')),
     path('audit/', include('apps.audit.urls')),
     path('api/v1/', include('apps.core.api.urls')),
-    path('api/schema/', SchemaAPIView.as_view(), name='api_schema'),
+    path(
+        'api/schema/',
+        SchemaAPIView.as_view(patterns=[path('api/v1/', include('apps.core.api.urls'))]),
+        name='api_schema',
+    ),
     path('api/', include(api_urlpatterns)),
     path('', include('apps.core.urls')),
 ]
