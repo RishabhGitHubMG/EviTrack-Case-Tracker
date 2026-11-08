@@ -15,14 +15,14 @@ Priority: **H** high, **M** medium, **L** low. IDs: `BE-S<slice>-<n>`. Requireme
 - [ ] BE-S1-01 (L) Nothing required. Confirm `/` is not captured by any API route and legacy landing still works
 
 ## S2 Authentication [ACC-1…ACC-3]
-- [ ] BE-S2-01 (H) `POST /auth/register/` (validation, password rules, pending state, audit)
-- [ ] BE-S2-02 (H) `POST /auth/login/` using axes + pending-auth session; masked email + expiry in response; throttled
-- [ ] BE-S2-03 (H) `POST /auth/otp/verify/`, `POST /auth/otp/resend/` reusing OTP hashing/expiry/lockout; cooldown 30 s; attempts_left
-- [ ] BE-S2-04 (H) `POST /auth/totp/verify/` as optional second step
-- [ ] BE-S2-05 (H) `GET /auth/me/` (user, role, permissions list, preferences, counts) and `POST /auth/logout/`
-- [ ] BE-S2-06 (H) `POST /auth/session/ping/` + keep server-side 15-minute idle enforcement; return `expires_in`
-- [ ] BE-S2-07 (M) Permission list generation from role matrix (single source in `accounts/permissions.py`)
-- [ ] BE-S2-08 (H) Tests: full login happy path, wrong password (attempts left), lockout, pending account, wrong OTP, OTP lockout, expiry, resend cooldown, TOTP step, logout, session expiry, CSRF required
+- [x] BE-S2-01 (H) `POST /auth/register/` (validation, password rules, pending state, audit)
+- [x] BE-S2-02 (H) `POST /auth/login/` using axes + pending-auth session; masked email + expiry in response; throttled
+- [x] BE-S2-03 (H) `POST /auth/otp/verify/`, `POST /auth/otp/resend/` reusing OTP hashing/expiry/lockout; cooldown 30 s; attempts_left
+- [x] BE-S2-04 (H) `POST /auth/totp/verify/` as optional second step
+- [x] BE-S2-05 (H) `GET /auth/me/` (user, role, permissions list, preferences, counts) and `POST /auth/logout/`
+- [x] BE-S2-06 (H) `POST /auth/session/ping/` + keep server-side 15-minute idle enforcement; return `expires_in`
+- [x] BE-S2-07 (M) Permission list generation from role matrix (single source in `accounts/permissions.py`)
+- [x] BE-S2-08 (H) Tests: full login happy path, wrong password (attempts left), lockout, pending account, wrong OTP, OTP lockout, expiry, resend cooldown, TOTP step, logout, session expiry, CSRF required
 
 ## S3 App shell [ACC-5]
 - [ ] BE-S3-01 (H) `PATCH /me/preferences/` (theme persisted per user)

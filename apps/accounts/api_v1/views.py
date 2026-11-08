@@ -8,13 +8,18 @@ from django.contrib.auth import authenticate, login as auth_login, logout as aut
 from django.utils import timezone
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_protect
+from drf_spectacular.utils import extend_schema
 from rest_framework import status
 from rest_framework.exceptions import Throttled, ValidationError
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from apps.accounts.api_v1.serializers import LoginSerializer, OTPCodeSerializer, RegisterSerializer, UserSerializer
+from apps.accounts.api_v1.serializers import (
+    AuthErrorSerializer, AuthStatusSerializer, LoginResponseSerializer, LoginSerializer, OTPCodeSerializer,
+    RegisterSerializer, RegistrationStatusSerializer, ResendResponseSerializer,
+    SessionPingResponseSerializer, UserSerializer,
+)
 from apps.accounts.forms import RegistrationForm
 from apps.accounts.models import EmailOTPChallenge, User
 from apps.accounts.services import mask_email, send_email_otp, verify_email_otp, verify_otp
@@ -130,6 +135,7 @@ class PublicAuthAPIView(APIView):
 
 
 class RegisterAPIView(PublicAuthAPIView):
+    @extend_schema(request=RegisterSerializer, responses={201: RegistrationStatusSerializer, 400: AuthErrorSerializer, 403: AuthErrorSerializer})
     def post(self, request):
         serializer = RegisterSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -157,6 +163,7 @@ class RegisterAPIView(PublicAuthAPIView):
 
 
 class LoginAPIView(PublicAuthAPIView):
+    @extend_schema(request=LoginSerializer, responses={200: LoginResponseSerializer, 400: AuthErrorSerializer, 403: AuthErrorSerializer, 429: AuthErrorSerializer, 503: AuthErrorSerializer})
     def post(self, request):
         _enforce_throttle(request, 'api-login', settings.AUTH_LOGIN_RATE_LIMIT, settings.AUTH_LOGIN_RATE_WINDOW_SECONDS)
         serializer = LoginSerializer(data=request.data)
@@ -212,6 +219,7 @@ class LoginAPIView(PublicAuthAPIView):
 
 
 class OTPVerifyAPIView(PublicAuthAPIView):
+    @extend_schema(request=OTPCodeSerializer, responses={200: AuthStatusSerializer, 400: AuthErrorSerializer, 401: AuthErrorSerializer, 403: AuthErrorSerializer, 409: AuthErrorSerializer, 429: AuthErrorSerializer})
     def post(self, request):
         _enforce_throttle(request, 'api-otp-verify', settings.OTP_VERIFY_RATE_LIMIT, settings.OTP_VERIFY_RATE_WINDOW_SECONDS)
         serializer = OTPCodeSerializer(data=request.data)
@@ -239,6 +247,7 @@ class OTPVerifyAPIView(PublicAuthAPIView):
 
 
 class OTPResendAPIView(PublicAuthAPIView):
+    @extend_schema(request=None, responses={200: ResendResponseSerializer, 401: AuthErrorSerializer, 403: AuthErrorSerializer, 409: AuthErrorSerializer, 429: AuthErrorSerializer, 503: AuthErrorSerializer})
     def post(self, request):
         user, challenge = _pending_user(request, 'email')
         sent_at = challenge.expires_at - timedelta(minutes=settings.EMAIL_OTP_TTL_MINUTES)
@@ -257,6 +266,7 @@ class OTPResendAPIView(PublicAuthAPIView):
 
 
 class TOTPVerifyAPIView(PublicAuthAPIView):
+    @extend_schema(request=OTPCodeSerializer, responses={200: AuthStatusSerializer, 400: AuthErrorSerializer, 401: AuthErrorSerializer, 403: AuthErrorSerializer, 409: AuthErrorSerializer, 429: AuthErrorSerializer})
     def post(self, request):
         _enforce_throttle(request, 'api-otp-verify', settings.OTP_VERIFY_RATE_LIMIT, settings.OTP_VERIFY_RATE_WINDOW_SECONDS)
         serializer = OTPCodeSerializer(data=request.data)
@@ -273,6 +283,7 @@ class TOTPVerifyAPIView(PublicAuthAPIView):
 class MeAPIView(APIView):
     permission_classes = [IsApprovedUser]
 
+    @extend_schema(responses={200: UserSerializer, 401: AuthErrorSerializer, 403: AuthErrorSerializer})
     def get(self, request):
         return Response(UserSerializer(request.user).data)
 
@@ -280,6 +291,7 @@ class MeAPIView(APIView):
 class LogoutAPIView(APIView):
     permission_classes = [IsApprovedUser]
 
+    @extend_schema(request=None, responses={204: None, 401: AuthErrorSerializer, 403: AuthErrorSerializer})
     def post(self, request):
         auth_logout(request._request)
         return Response(status=status.HTTP_204_NO_CONTENT)
@@ -288,6 +300,7 @@ class LogoutAPIView(APIView):
 class SessionPingAPIView(APIView):
     permission_classes = [IsApprovedUser]
 
+    @extend_schema(request=None, responses={200: SessionPingResponseSerializer, 401: AuthErrorSerializer, 403: AuthErrorSerializer})
     def post(self, request):
         request.session['last_activity'] = time.time()
         return Response({'expires_in': settings.SESSION_TIMEOUT_SECONDS})
