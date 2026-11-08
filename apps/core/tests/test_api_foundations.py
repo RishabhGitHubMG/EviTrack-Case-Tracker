@@ -106,6 +106,26 @@ def test_schema_is_available_to_an_admin(client, make_user):
     assert '/api/v1/auth/csrf/' in schema
 
 
+def test_schema_describes_authentication_requests_and_responses():
+    from django.urls import include, path
+    from drf_spectacular.generators import SchemaGenerator
+
+    schema = SchemaGenerator(patterns=[path('api/v1/', include('apps.core.api.urls'))]).get_schema(
+        request=None, public=True,
+    )
+    paths = schema['paths']
+    login = paths['/api/v1/auth/login/']['post']
+    assert login['requestBody']['content']['application/json']['schema']['$ref'].endswith('/LoginRequest')
+    assert login['responses']['200']['content']['application/json']['schema']['$ref'].endswith('/LoginResponse')
+    assert '429' in login['responses']
+    assert '201' in paths['/api/v1/auth/register/']['post']['responses']
+    assert '204' in paths['/api/v1/auth/logout/']['post']['responses']
+    assert paths['/api/v1/auth/me/']['get']['security'] == [{'cookieAuth': []}]
+    user = schema['components']['schemas']['User']['properties']
+    assert user['preferences']['allOf'][0]['$ref'].endswith('/Preferences')
+    assert user['pending_approvals']['nullable'] is True
+
+
 def test_shared_reference_serializers_and_pagination(make_user, make_case):
     user = make_user(first_name='Ada', last_name='Lovelace')
     case = make_case(owner=user)

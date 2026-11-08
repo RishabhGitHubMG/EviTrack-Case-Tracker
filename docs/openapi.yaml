@@ -17,6 +17,329 @@ paths:
               schema:
                 $ref: '#/components/schemas/Status'
           description: ''
+  /api/v1/auth/login/:
+    post:
+      operationId: auth_login_create
+      tags:
+      - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+        required: true
+      security:
+      - cookieAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthError'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthError'
+          description: ''
+        '429':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthError'
+          description: ''
+        '503':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthError'
+          description: ''
+  /api/v1/auth/logout/:
+    post:
+      operationId: auth_logout_create
+      tags:
+      - auth
+      security:
+      - cookieAuth: []
+      responses:
+        '204':
+          description: No response body
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthError'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthError'
+          description: ''
+  /api/v1/auth/me/:
+    get:
+      operationId: auth_me_retrieve
+      tags:
+      - auth
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthError'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthError'
+          description: ''
+  /api/v1/auth/otp/resend/:
+    post:
+      operationId: auth_otp_resend_create
+      tags:
+      - auth
+      security:
+      - cookieAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResendResponse'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthError'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthError'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthError'
+          description: ''
+        '429':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthError'
+          description: ''
+        '503':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthError'
+          description: ''
+  /api/v1/auth/otp/verify/:
+    post:
+      operationId: auth_otp_verify_create
+      tags:
+      - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OTPCodeRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/OTPCodeRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/OTPCodeRequest'
+        required: true
+      security:
+      - cookieAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthStatus'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthError'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthError'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthError'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthError'
+          description: ''
+        '429':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthError'
+          description: ''
+  /api/v1/auth/register/:
+    post:
+      operationId: auth_register_create
+      tags:
+      - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+        required: true
+      security:
+      - cookieAuth: []
+      - {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegistrationStatus'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthError'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthError'
+          description: ''
+  /api/v1/auth/session/ping/:
+    post:
+      operationId: auth_session_ping_create
+      tags:
+      - auth
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionPingResponse'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthError'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthError'
+          description: ''
+  /api/v1/auth/totp/verify/:
+    post:
+      operationId: auth_totp_verify_create
+      tags:
+      - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OTPCodeRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/OTPCodeRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/OTPCodeRequest'
+        required: true
+      security:
+      - cookieAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthStatus'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthError'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthError'
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthError'
+          description: ''
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthError'
+          description: ''
+        '429':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthError'
+          description: ''
   /api/v1/health/:
     get:
       operationId: health_retrieve
@@ -33,6 +356,191 @@ paths:
           description: ''
 components:
   schemas:
+    AuthError:
+      type: object
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        fields:
+          type: object
+          additionalProperties: {}
+          nullable: true
+        retry_after:
+          type: integer
+          nullable: true
+        attempts_left:
+          type: integer
+      required:
+      - code
+      - fields
+      - message
+      - retry_after
+    AuthStatus:
+      type: object
+      properties:
+        status:
+          $ref: '#/components/schemas/AuthStatusStatusEnum'
+      required:
+      - status
+    AuthStatusStatusEnum:
+      enum:
+      - authenticated
+      - totp_required
+      type: string
+      description: |-
+        * `authenticated` - authenticated
+        * `totp_required` - totp_required
+    LoginRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          minLength: 1
+        password:
+          type: string
+          writeOnly: true
+          minLength: 1
+        remember_me:
+          type: boolean
+          default: false
+      required:
+      - email
+      - password
+    LoginResponse:
+      type: object
+      properties:
+        status:
+          $ref: '#/components/schemas/LoginResponseStatusEnum'
+        otp:
+          $ref: '#/components/schemas/OTPDelivery'
+      required:
+      - otp
+      - status
+    LoginResponseStatusEnum:
+      enum:
+      - otp_required
+      type: string
+      description: '* `otp_required` - otp_required'
+    OTPCodeRequest:
+      type: object
+      properties:
+        code:
+          type: string
+          minLength: 1
+          maxLength: 12
+      required:
+      - code
+    OTPDelivery:
+      type: object
+      properties:
+        sent_to_masked:
+          type: string
+        expires_in:
+          type: integer
+        resend_in:
+          type: integer
+      required:
+      - expires_in
+      - resend_in
+      - sent_to_masked
+    Preferences:
+      type: object
+      properties:
+        theme:
+          $ref: '#/components/schemas/ThemeEnum'
+        email_enabled:
+          type: boolean
+        sms_enabled:
+          type: boolean
+        reminder_hearing:
+          type: array
+          items:
+            type: integer
+        reminder_deadline:
+          type: array
+          items:
+            type: integer
+      required:
+      - email_enabled
+      - reminder_deadline
+      - reminder_hearing
+      - sms_enabled
+      - theme
+    RegisterRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 300
+        email:
+          type: string
+          format: email
+          minLength: 1
+        phone:
+          type: string
+          default: ''
+          maxLength: 20
+        requested_role:
+          type: string
+          minLength: 1
+        password:
+          type: string
+          writeOnly: true
+          minLength: 1
+        password2:
+          type: string
+          writeOnly: true
+          minLength: 1
+      required:
+      - email
+      - name
+      - password
+      - password2
+      - requested_role
+    RegistrationStatus:
+      type: object
+      properties:
+        status:
+          $ref: '#/components/schemas/RegistrationStatusStatusEnum'
+      required:
+      - status
+    RegistrationStatusStatusEnum:
+      enum:
+      - pending_approval
+      type: string
+      description: '* `pending_approval` - pending_approval'
+    ResendResponse:
+      type: object
+      properties:
+        resend_in:
+          type: integer
+      required:
+      - resend_in
+    RoleEnum:
+      enum:
+      - admin
+      - case_manager
+      - investigator
+      - custodian
+      - reviewer
+      type: string
+      description: |-
+        * `admin` - Admin
+        * `case_manager` - Case Manager
+        * `investigator` - Investigator/Advocate
+        * `custodian` - Evidence Custodian
+        * `reviewer` - Read-only Reviewer
+    SessionPingResponse:
+      type: object
+      properties:
+        expires_in:
+          type: integer
+      required:
+      - expires_in
     Status:
       type: object
       properties:
@@ -40,3 +548,70 @@ components:
           type: string
       required:
       - status
+    ThemeEnum:
+      enum:
+      - light
+      - dark
+      type: string
+      description: |-
+        * `light` - light
+        * `dark` - dark
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          readOnly: true
+        email:
+          type: string
+          format: email
+          maxLength: 254
+        phone:
+          type: string
+          maxLength: 20
+        role:
+          $ref: '#/components/schemas/RoleEnum'
+        permissions:
+          type: array
+          items:
+            type: string
+          readOnly: true
+        preferences:
+          allOf:
+          - $ref: '#/components/schemas/Preferences'
+          readOnly: true
+        totp_enabled:
+          type: boolean
+          readOnly: true
+        last_login:
+          type: string
+          format: date-time
+          nullable: true
+        unread_notifications:
+          type: integer
+          readOnly: true
+        pending_custody:
+          type: integer
+          readOnly: true
+        pending_approvals:
+          type: integer
+          nullable: true
+          readOnly: true
+      required:
+      - email
+      - id
+      - name
+      - pending_approvals
+      - pending_custody
+      - permissions
+      - preferences
+      - totp_enabled
+      - unread_notifications
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: sessionid
