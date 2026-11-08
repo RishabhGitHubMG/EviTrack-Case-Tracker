@@ -1,3 +1,5 @@
+from collections.abc import Iterable
+from datetime import date, datetime, timedelta
 from typing import Any
 
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -5,6 +7,7 @@ from django.db.models import Count, Q
 from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import render
 from django.urls import reverse
+from django.utils import timezone
 from django.views import View
 from django.views.generic import TemplateView
 
@@ -12,6 +15,7 @@ from apps.accounts.mixins import get_user_accessible_cases
 from apps.cases.models import Case, Party
 from apps.custody.models import CustodyEvent
 from apps.evidence.models import Evidence
+from apps.hearings.models import Hearing, Task
 
 OPEN_CASE_STATUSES = [Case.Status.OPEN, Case.Status.UNDER_INVESTIGATION, Case.Status.IN_COURT]
 
@@ -132,12 +136,60 @@ class SearchPageView(LoginRequiredMixin, TemplateView):
         return context
 
 
+CHART_WEEKS = 8
+
+
+def _week_starts(future: bool) -> list[date]:
+    today = timezone.localdate()
+    this_monday = today - timedelta(days=today.weekday())
+    if future:
+        return [this_monday + timedelta(weeks=offset) for offset in range(CHART_WEEKS)]
+    return [this_monday - timedelta(weeks=offset) for offset in reversed(range(CHART_WEEKS))]
+
+
+def _week_label(monday: date) -> str:
+    return monday.strftime('%d %b')
+
+
+def _count_by_week(moments: Iterable[datetime], starts: list[date]) -> list[int]:
+    index = {start: position for position, start in enumerate(starts)}
+    counts = [0] * len(starts)
+    for moment in moments:
+        day = timezone.localdate(moment)
+        monday = day - timedelta(days=day.weekday())
+        if monday in index:
+            counts[index[monday]] += 1
+    return counts
+
+
 class DashboardChartsAPIView(LoginRequiredMixin, View):
     def get(self, request: HttpRequest) -> JsonResponse:
         cases = get_user_accessible_cases(request.user)
         evidence = _visible_evidence(request.user)
         case_counts = dict(cases.values_list('status').annotate(n=Count('id')).values_list('status', 'n'))
         evidence_counts = dict(evidence.values_list('status').annotate(n=Count('id')).values_list('status', 'n'))
+        type_counts = dict(cases.values_list('case_type').annotate(n=Count('id')).values_list('case_type', 'n'))
+
+        upcoming = _week_starts(future=True)
+        hearing_moments = Hearing.objects.filter(
+            case__in=cases,
+            hearing_date__date__gte=upcoming[0],
+            hearing_date__date__lt=upcoming[-1] + timedelta(days=7),
+        ).values_list('hearing_date', flat=True)
+
+        past = _week_starts(future=False)
+        upload_moments = Evidence.objects.filter(
+            case__in=cases, uploaded_at__date__gte=past[0]
+        ).values_list('uploaded_at', flat=True)
+
+        workload_rows = (
+            Task.objects.filter(case__in=cases)
+            .exclude(status=Task.Status.COMPLETED)
+            .values('assigned_to__first_name', 'assigned_to__last_name', 'assigned_to__email')
+            .annotate(n=Count('id'))
+            .order_by('-n', 'assigned_to__email')[:8]
+        )
+
         return JsonResponse({
             'cases_by_status': {
                 'labels': [label for _, label in Case.Status.choices],
@@ -146,6 +198,26 @@ class DashboardChartsAPIView(LoginRequiredMixin, View):
             'evidence_by_status': {
                 'labels': [label for _, label in Evidence.Status.choices],
                 'values': [evidence_counts.get(value, 0) for value, _ in Evidence.Status.choices],
+            },
+            'cases_by_type': {
+                'labels': [label for _, label in Case.CaseType.choices],
+                'values': [type_counts.get(value, 0) for value, _ in Case.CaseType.choices],
+            },
+            'hearings_per_week': {
+                'labels': [_week_label(start) for start in upcoming],
+                'values': _count_by_week(hearing_moments, upcoming),
+            },
+            'evidence_uploads': {
+                'labels': [_week_label(start) for start in past],
+                'values': _count_by_week(upload_moments, past),
+            },
+            'workload_per_user': {
+                'labels': [
+                    f"{row['assigned_to__first_name']} {row['assigned_to__last_name']}".strip()
+                    or row['assigned_to__email']
+                    for row in workload_rows
+                ],
+                'values': [row['n'] for row in workload_rows],
             },
         })
 

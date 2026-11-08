@@ -147,6 +147,32 @@ Shell status: sidebar and topbar share `templates/partials/`. Every authenticate
 |---|---|---|
 | Session 13, Step 1 | Route list from urls.py; template grep matrix; targeted reads of base, sidebar, topbar, dashboard, case detail, evidence detail, upload, calendar, custody timeline view, core views, JS | Inventory recorded. No browser run yet. |
 
+## 4a. Step 2, batch 1 (session 13)
+
+Tables in sections 1 and 2 reflect the Step 1 inventory. These changes are done since then. Status is code-level: pytest passes, and no browser run has been done yet.
+
+| Item | Change | Status |
+|---|---|---|
+| Landing | Removed unbuilt claims; added How it works section and Sign in CTA | Complete (code) |
+| Custody timeline route | Page template extends base; partial reused | Complete (code), 2 tests |
+| Search results | `/search/` page, grouped by Cases/Parties/Evidence, scoped to accessible cases; topbar Enter key and "See all results" link | Complete (code), 4 tests |
+| Evidence detail | Green Verified and red Modified badges; hash copy button; verify result shown inline | Complete (code) |
+| Evidence upload | Drop zone, per-file queue with progress, one request per file; failures read from server messages | Complete (code), browser not run |
+| Audit verify chain | POST button on audit log (admin), uses `AuditLog.verify_chain` | Complete (code), 3 tests |
+| Security & Policy | Read-only page with live settings values (admin) | Complete (code), 4 tests with sidebar links |
+| Sidebar admin links | Approval Queue and Failed Logins added | Complete (code) |
+| Dashboard charts | Added cases by type, hearings per week, open tasks per team member, evidence uploads per week | Complete (code), 3 tests |
+
+Still open in Step 2:
+
+- Notification preferences (reminder timing and channels): needs a model, migration and scheduler hook. The current "Preferences" link still goes to profile. This is a backend change and is not yet made.
+- Calendar create and edit: not built.
+- Notification list filters (read state, type): not built.
+- Evidence list tag filter: not confirmed.
+- Bulk verify control on the case Evidence tab: no button yet (`evidence:evidence_bulk_verify` exists).
+- Case assign and unassign UI: not verified.
+- Mobile and desktop checks of all changed pages: Step 4.
+
 ## 5. Blocked commands
 
 - Session 13: a Bash command that used shell command substitution to loop over templates was blocked by the environment's injection policy. It was not retried. The equivalent checks were done with the Grep and Read tools.

@@ -472,6 +472,29 @@ class DarkModeToggleView(LoginRequiredMixin, View):
 # ADMINISTRATIVE USER MANAGEMENT VIEWS
 # ==============================================================================
 
+class SecurityPolicyView(AdminRequiredMixin, View):
+    template_name = 'accounts/security.html'
+
+    def get(self, request: HttpRequest) -> HttpResponse:
+        return render(request, self.template_name, {
+            'session_timeout_minutes': settings.SESSION_TIMEOUT_SECONDS // 60,
+            'session_warning_minutes': (settings.SESSION_TIMEOUT_SECONDS - settings.SESSION_WARNING_SECONDS) // 60,
+            'lockout_failure_limit': settings.AXES_FAILURE_LIMIT,
+            'lockout_cooloff_minutes': int(settings.AXES_COOLOFF_TIME.total_seconds() // 60),
+            'email_otp_ttl_minutes': settings.EMAIL_OTP_TTL_MINUTES,
+            'email_otp_max_attempts': settings.EMAIL_OTP_MAX_ATTEMPTS,
+            'email_otp_lockout_minutes': settings.EMAIL_OTP_LOCKOUT_MINUTES,
+            'password_min_length': next(
+                validator['OPTIONS']['min_length']
+                for validator in settings.AUTH_PASSWORD_VALIDATORS
+                if validator['NAME'].endswith('MinimumLengthValidator')
+            ),
+            'upload_limit_mb': settings.EVIDENCE_MAX_SIZE // (1024 * 1024),
+            'login_rate_limit': settings.AUTH_LOGIN_RATE_LIMIT,
+            'login_rate_window_seconds': settings.AUTH_LOGIN_RATE_WINDOW_SECONDS,
+        })
+
+
 class UserListView(AdminRequiredMixin, ListView):
     """
     Administrative directory of all registered system users with full-text search,
