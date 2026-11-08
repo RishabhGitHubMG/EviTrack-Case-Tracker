@@ -14,13 +14,15 @@ Tasks are ordered by priority, then by dependency. A task is complete only after
 - [x] T7 — [Medium] Check audit/admin screens and navigation, including approval queue, failed logins, security settings, and audit-chain verification. Note: approval, failed-login, security, audit verify-chain, filter/export, and role-access routes/actions pass targeted tests (41 tests combined); Playwright page check not verified because unavailable.
 - [x] T8 — [Medium] Review remaining partial account and case screens for required actions, empty/error states, and route usability; fix and test confirmed gaps. Note: fixed registration approval copy, added user status filtering/role-change controls, preserved case-list filters while sorting, and aligned party controls/endpoints with manager/lead permissions; 21 targeted account/case tests passed. Browser check not verified because Playwright is unavailable.
 - [x] T9 — [Medium] Verify the five PDF reports through the reports page and check the required case-picker/list behavior. Note: added accessible-case picker and clear filter; all five PDF links/exports, audit logging, and inaccessible-case denial pass in 17 reports tests. Browser check not verified because Playwright is unavailable.
-- [ ] T10 — [Medium] Verify search, custody timeline, dashboard charts, evidence upload/detail, and landing updates in the integrated UI. Note: pending.
+- [x] T10 — [Medium] Verify search, custody timeline, dashboard charts, evidence upload/detail, and landing updates in the integrated UI. Note: authenticated page/API suites passed for search, dashboard charts, custody timeline, evidence pages/integrity, and route crawl (40 targeted tests); the public landing page rendered at 1440px in preview. Authenticated interactive browser checks not verified because Playwright is unavailable.
 
 ## Design polish
-- [ ] T11 — [Medium] Polish all pages for consistent typography, spacing, loading/error/empty states, accessible controls, keyboard use, and responsive tables; check contrast and print styles. Note: pending.
+- [x] T29 — [High] Make toast messages render as text rather than unescaped HTML; verify untrusted text cannot create markup. Note: toast output uses `textContent`; all current call sites pass static text and `node --check` passes. Runtime browser injection check not verified because Playwright is unavailable.
+- [ ] T11 — [Medium] Polish all pages for consistent typography, spacing, loading/error/empty states, accessible controls, keyboard use, and responsive tables; check contrast and print styles. Note: not verified; full visual, contrast, and print review requires an interactive browser, and Playwright is unavailable.
 
 ## Browser verification
 - [ ] T12 — [High] Run Playwright at 1440px and 390px as an admin and a normal user; exercise primary flows and record failures. Note: pending.
+- [ ] T28 — [High] Verify the landing feature and four-step grids at 390px; adjust if cramped. Note: not verified because the screenshot preview did not produce a reliable 390px rendering, and Playwright is unavailable.
 - [ ] T13 — [High] Capture verified desktop/mobile screenshots in `docs/screenshots/` and record page, role, and viewport. Note: pending.
 - [ ] T14 — [Medium] Crawl internal links/routes and check for dead links, placeholders, and server errors. Note: pending.
 
