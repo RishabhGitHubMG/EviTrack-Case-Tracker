@@ -26,11 +26,15 @@ export type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
   loading?: boolean;
 };
 
+export function buttonClass({ variant = 'primary', size = 'md', className }: Pick<ButtonProps, 'variant' | 'size' | 'className'> = {}) {
+  return cn('ui-button', `ui-button--${variant}`, `ui-button--${size}`, className);
+}
+
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button(
   { className, variant = 'primary', size = 'md', loading = false, children, disabled, ...props },
   ref,
 ) {
-  return <button ref={ref} className={cn('ui-button', `ui-button--${variant}`, `ui-button--${size}`, className)} disabled={disabled || loading} aria-busy={loading || undefined} {...props}>{loading && <LoaderCircle className="ui-button__spinner" size={16} aria-hidden="true" />}{children}</button>;
+  return <button ref={ref} className={buttonClass({ variant, size, className })} disabled={disabled || loading} aria-busy={loading || undefined} {...props}>{loading && <LoaderCircle className="ui-button__spinner" size={16} aria-hidden="true" />}{children}</button>;
 });
 
 export type InputProps = InputHTMLAttributes<HTMLInputElement> & { label?: string; error?: string };
