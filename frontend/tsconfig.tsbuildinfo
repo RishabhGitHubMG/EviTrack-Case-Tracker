@@ -1,0 +1,1 @@
+{"root":["./src/App.tsx","./src/DesignPage.tsx","./src/main.tsx","./src/api/client.ts","./src/api/keys.ts","./src/api/schema.gen.ts","./src/components/ui/index.test.tsx","./src/components/ui/index.tsx","./src/test/setup.ts","./src/theme/ThemeProvider.tsx","./e2e/smoke.spec.ts"],"version":"5.6.3"}

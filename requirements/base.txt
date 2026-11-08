@@ -10,5 +10,6 @@ weasyprint>=62.0
 pytest>=8.0
 pytest-django>=4.9
 django-filter>=24.0
+drf-spectacular>=0.28.0
 pyotp>=2.9
 gunicorn>=23.0

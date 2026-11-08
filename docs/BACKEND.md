@@ -51,7 +51,7 @@ State is kept server-side (session) so refresh and multiple tabs behave.
 6. `POST /auth/logout/`; `POST /auth/session/ping/` extends inactivity timer; server also enforces the 15-minute idle timeout (existing middleware).
 7. `POST /auth/register/`, `POST /auth/password/change/`, `POST/DELETE /auth/totp/` (enable/disable).
 Reuse existing `django-axes`, OTP code hashing/expiry/lockout logic and the session-timeout middleware; the API only exposes them.
-**OTP exposure:** never in responses. For Playwright, a test/dev-only file-based email backend (env-controlled) is used.
+**OTP exposure:** never in responses. For Playwright, set `EVITRACK_PLAYWRIGHT_EMAIL_DIR` to an existing writable directory in development or test settings. Django writes one `.log` file per message; read the newest file and extract the six-digit code from its body. Production settings ignore this variable and use SMTP or the configured production backend.
 
 ## 5. Files and uploads
 - `POST /evidence/` multipart (`file`, `case`, `title`, `tags`, optional `new_version_of`). The existing chunked-hash service computes SHA-256 while saving to `EVIDENCE_ROOT` under a random name; validation (size cap, allowlist, double extension) runs before saving; response includes the hash and version.

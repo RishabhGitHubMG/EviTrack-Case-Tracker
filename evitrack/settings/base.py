@@ -37,6 +37,7 @@ INSTALLED_APPS = [
 
     # Third-party apps
     'rest_framework',
+    'drf_spectacular',
     'django_filters',
     'axes',
 
@@ -86,6 +87,7 @@ AUTHENTICATION_BACKENDS = [
 ]
 
 ROOT_URLCONF = 'evitrack.urls'
+CSRF_FAILURE_VIEW = 'apps.core.api.csrf.csrf_failure'
 
 TEMPLATES = [
     {
@@ -145,18 +147,26 @@ LOGOUT_REDIRECT_URL = '/accounts/login/'
 # Django REST Framework configuration
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework.authentication.SessionAuthentication',
+        'apps.core.api.authentication.SessionAuthentication401',
     ],
     'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.IsAuthenticated',
+        'apps.core.api.permissions.IsApprovedUser',
     ],
-    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
-    'PAGE_SIZE': 25,
+    'DEFAULT_PAGINATION_CLASS': 'apps.core.api.pagination.StandardPagination',
+    'PAGE_SIZE': 20,
     'DEFAULT_FILTER_BACKENDS': [
         'django_filters.rest_framework.DjangoFilterBackend',
         'rest_framework.filters.SearchFilter',
         'rest_framework.filters.OrderingFilter',
     ],
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+    'EXCEPTION_HANDLER': 'apps.core.api.exceptions.api_exception_handler',
+}
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'EviTrack API',
+    'VERSION': '1.0.0',
+    'COMPONENT_SPLIT_REQUEST': True,
 }
 
 # Django-Axes configuration (Account Lockout)

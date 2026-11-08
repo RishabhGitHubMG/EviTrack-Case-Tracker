@@ -48,6 +48,9 @@ else:
 
 # Console email backend for development inspection
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+if os.environ.get('EVITRACK_PLAYWRIGHT_EMAIL_DIR'):
+    EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
+    EMAIL_FILE_PATH = os.environ['EVITRACK_PLAYWRIGHT_EMAIL_DIR']
 
 # Internal IPs for debug toolbar and local debugging
 INTERNAL_IPS = [

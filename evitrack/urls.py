@@ -6,7 +6,9 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
 
-# API URLs under /api/
+from apps.core.api.views import SchemaAPIView
+
+# Legacy API routes remain available until the SPA cutover.
 api_urlpatterns = [
     path('auth/', include('apps.accounts.api_urls')),
     path('cases/', include('apps.cases.api_urls')),
@@ -28,6 +30,12 @@ urlpatterns = [
     path('notifications/', include('apps.notifications.urls')),
     path('reports/', include('apps.reports.urls')),
     path('audit/', include('apps.audit.urls')),
+    path('api/v1/', include('apps.core.api.urls')),
+    path(
+        'api/schema/',
+        SchemaAPIView.as_view(patterns=[path('api/v1/', include('apps.core.api.urls'))]),
+        name='api_schema',
+    ),
     path('api/', include(api_urlpatterns)),
     path('', include('apps.core.urls')),
 ]

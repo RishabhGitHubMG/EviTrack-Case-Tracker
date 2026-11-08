@@ -57,3 +57,5 @@ celerybeat.pid
 
 # Node (if any frontend tooling added)
 node_modules/
+playwright-report/
+test-results/

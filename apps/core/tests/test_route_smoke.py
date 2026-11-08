@@ -99,7 +99,13 @@ def _kwargs_for(full_name, arg_names, world):
     return kwargs
 
 
-NON_HTML_OK_TYPES = {'application/json', 'image/png', 'application/pdf', 'text/csv'}
+NON_HTML_OK_TYPES = {
+    'application/json',
+    'application/pdf',
+    'application/vnd.oai.openapi',
+    'image/png',
+    'text/csv',
+}
 
 # Placeholder routes still awaiting a real view. Remove each entry when its view is built;
 # the test fails if a new placeholder appears or an entry here is already real.

@@ -1,46 +1,35 @@
-# EviTrack Remaining Work
+# TODO – INDEX (replaces the old single TODO list)
 
-Tasks are ordered by priority, then by dependency. A task is complete only after its verification succeeds; blocked checks stay marked not verified with the reason.
+Detailed items: `TODO_BACKEND.md` (BE-…) and `TODO_FRONTEND.md` (FE-…). Process: `WORKFLOW.md`. Status log: `PROGRESS.md`.
+Update the table after every batch. A slice is **Done** only when its Definition of Done (WORKFLOW §3) is met.
 
-## Frontend screens
-- [x] T1 — [High] Add notification preferences (reminder timing and channels), migration, scheduler integration, page, and tests. Note: targeted account/reminder tests passed (19); migration applied; Playwright browser check not verified because Playwright is unavailable in the environment.
-- [x] T2 — [High] Add hearing create/edit actions from the calendar and verify both flows. Note: case-scoped schedule control and date-click prefill added; detail/edit route tests passed (5), including read-only reviewer restrictions; Playwright browser check not verified because Playwright is unavailable.
-- [x] T3 — [High] Add read-state and notification-type filters; test them. Note: all/read/unread and type filters, combined filters, and invalid-value behavior pass notification tests (15).
-- [x] T4 — [High] Confirm and, if needed, fix the evidence-list tag filter; test filtered results. Note: filter backend was wired but the UI control was missing; added the tag selector and verified matching results and inaccessible-tag scoping (7 evidence-page tests passed).
-- [x] T5 — [High] Add a bulk-verify control to the case Evidence tab and verify the result. Note: case managers see the CSRF-protected action, queue confirmation returns to the Evidence tab, and reviewer/inaccessible-case POSTs are denied; evidence page/integrity tests passed (12).
-- [x] T6 — [High] Check and verify case assign/unassign controls and access behavior. Note: forms now appear only for Case Managers/Admins as required by the endpoints; manager assign/remove succeeds and returns to Team; case-lead UI/POST is denied (2 tests passed).
-- [x] T26 — [High] Validate approval/rejection return URLs against the current host to prevent external redirects; add regression tests. Note: same-host redirects and protocol-relative external redirect rejection pass for both approval and rejection actions (4 tests).
-- [x] T27 — [High] Restrict case creation and terminal status transitions to the documented Case Manager/Admin roles; add role-based tests. Note: non-manager case creation and case-lead closure are denied while permitted lead edits still work (case-page tests passed).
-- [x] T7 — [Medium] Check audit/admin screens and navigation, including approval queue, failed logins, security settings, and audit-chain verification. Note: approval, failed-login, security, audit verify-chain, filter/export, and role-access routes/actions pass targeted tests (41 tests combined); Playwright page check not verified because unavailable.
-- [x] T8 — [Medium] Review remaining partial account and case screens for required actions, empty/error states, and route usability; fix and test confirmed gaps. Note: fixed registration approval copy, added user status filtering/role-change controls, preserved case-list filters while sorting, and aligned party controls/endpoints with manager/lead permissions; 21 targeted account/case tests passed. Browser check not verified because Playwright is unavailable.
-- [x] T9 — [Medium] Verify the five PDF reports through the reports page and check the required case-picker/list behavior. Note: added accessible-case picker and clear filter; all five PDF links/exports, audit logging, and inaccessible-case denial pass in 17 reports tests. Browser check not verified because Playwright is unavailable.
-- [x] T10 — [Medium] Verify search, custody timeline, dashboard charts, evidence upload/detail, and landing updates in the integrated UI. Note: authenticated page/API suites passed for search, dashboard charts, custody timeline, evidence pages/integrity, and route crawl (40 targeted tests); the public landing page rendered at 1440px in preview. Authenticated interactive browser checks not verified because Playwright is unavailable.
+## Current slice: S0
 
-## Design polish
-- [x] T29 — [High] Make toast messages render as text rather than unescaped HTML; verify untrusted text cannot create markup. Note: toast output uses `textContent`; all current call sites pass static text and `node --check` passes. Runtime browser injection check not verified because Playwright is unavailable.
-- [ ] T11 — [Medium] Polish all pages for consistent typography, spacing, loading/error/empty states, accessible controls, keyboard use, and responsive tables; check contrast and print styles. Note: not verified; full visual, contrast, and print review requires an interactive browser, and Playwright is unavailable.
+| Slice | Journey step | Backend | Frontend | Slice status |
+|---|---|---|---|---|
+| S0 | Foundations | 6/7 | 4/7 | In progress |
+| S1 | Landing page | 0/1 | 0/6 | Not started |
+| S2 | Register, Login, OTP, TOTP | 0/8 | 0/9 | Not started |
+| S3 | App shell | 0/5 | 0/9 | Not started |
+| S4 | Dashboard | 0/3 | 0/5 | Not started |
+| S5 | Cases | 0/8 | 0/7 | Not started |
+| S6 | Evidence | 0/9 | 0/7 | Not started |
+| S7 | Custody | 0/5 | 0/6 | Not started |
+| S8 | Hearings, tasks, calendar | 0/5 | 0/5 | Not started |
+| S9 | Notifications and preferences | 0/4 | 0/4 | Not started |
+| S10 | Reports and search | 0/4 | 0/3 | Not started |
+| S11 | Admin and account | 0/8 | 0/6 | Not started |
+| S12 | Hardening and cutover | 0/7 | 0/8 | Not started |
 
-## Browser verification
-- [ ] T12 — [High] Run Playwright at 1440px and 390px as an admin and a normal user; exercise primary flows and record failures. Note: pending.
-- [ ] T28 — [High] Verify the landing feature and four-step grids at 390px; adjust if cramped. Note: not verified because the screenshot preview did not produce a reliable 390px rendering, and Playwright is unavailable.
-- [ ] T13 — [High] Capture verified desktop/mobile screenshots in `docs/screenshots/` and record page, role, and viewport. Note: pending.
-- [ ] T14 — [Medium] Crawl internal links/routes and check for dead links, placeholders, and server errors. Note: pending.
+## Carried over from the Django-template phase (do not lose)
+- [ ] Docker image build (no daemon in the agent sandbox): user verifies with `docker compose up --build`
+- [ ] PostgreSQL audit-trigger rejection probe (blocked in sandbox): user verifies on their machine
+- [ ] Live Redis + Celery worker + Beat reminder run: user verifies on their machine
+- [ ] Real-browser review of PDF layouts (samples to `docs/samples/`)
+- [ ] Browser-test of legacy pages is superseded by the React rebuild; keep legacy tests green until S12
 
-## Docker/Celery/PostgreSQL verification
-- [ ] T15 — [High] Validate Docker build, Compose startup, and nginx configuration for the documented services. Note: pending.
-- [ ] T16 — [High] Run a live Celery/Beat + Redis reminder scan and verify scheduled delivery/idempotency. Note: pending.
-- [ ] T17 — [High] Verify PostgreSQL audit-trigger UPDATE/DELETE rejection; if the environment blocks the probe, retain “not verified” and record the reason without retrying. Note: pending.
-- [ ] T18 — [Medium] Reconcile Docker, database, evidence-storage, and audit-immutability deployment claims with successful runtime checks. Note: pending.
+## Later documents (generate from real code after S12)
+- [ ] `docs/ARCHITECTURE.md` · `docs/DEMO_SCRIPT.md` · `docs/TESTING.md` · `docs/VIVA_QA.md`
 
-## README
-- [ ] T19 — [Medium] Verify README setup, environment variables, Docker, Celery, seed data, five-minute demo, project structure, and limitations against tested behavior; update inaccurate claims. Note: pending.
-
-## Status reconciliation
-- [ ] T20 — [High] Reconcile all remaining Foundation, Accounts, Cases, Evidence, Custody, Hearings, Notifications, Reports, Audit, Search, Security, Data, Tests, Deploy, and Docs rows in `docs/PROGRESS.md` against executed checks. Note: pending.
-- [ ] T21 — [Medium] Reconcile every page, route, shell component, and gap in `docs/FRONTEND.md`; record browser results and update session logs. Note: pending.
-- [ ] T22 — [Medium] Update completion measurement and NEXT ACTION/status header to match verified outcomes only. Note: pending.
-
-## Final QA
-- [ ] T23 — [High] Run the full test suite once per batch and resolve any regressions before marking work complete. Note: pending.
-- [ ] T24 — [High] Run Django `check --deploy`, migration-drift check, and the route/dead-link crawl; record blocked checks as not verified with reasons. Note: pending.
-- [ ] T25 — [High] Perform final cross-role desktop/mobile smoke checks, inspect git diff/status, and confirm all docs agree with observed results. Note: pending.
+## Notes
+- Move old docs to `docs/archive/` (old `FRONTEND.md`, old TODO items already completed). Keep `PROGRESS.md`'s history.
