@@ -13,15 +13,33 @@
             <h1 class="h3 fw-bold mb-1 text-ev-navy">Notifications</h1>
             <p class="text-muted small mb-0">Assignments, custody requests, integrity alerts and reminders.</p>
         </div>
-        <div class="d-flex flex-wrap align-items-center gap-2">
-            {% if unread_only %}
-                <a href="{% url 'notifications:notification_list' %}" class="btn btn-ev-outline">Show all</a>
-            {% else %}
-                <a href="?unread=1" class="btn btn-ev-outline">Show unread</a>
-            {% endif %}
+        <div class="d-flex flex-wrap align-items-end gap-2">
+            <form method="get" action="{% url 'notifications:notification_list' %}" class="d-flex flex-wrap align-items-end gap-2">
+                <div>
+                    <label class="form-label font-sm mb-1" for="notificationReadFilter">Read state</label>
+                    <select class="form-select form-select-sm" id="notificationReadFilter" name="read">
+                        <option value="all" {% if read_filter == 'all' %}selected{% endif %}>All</option>
+                        <option value="unread" {% if read_filter == 'unread' %}selected{% endif %}>Unread</option>
+                        <option value="read" {% if read_filter == 'read' %}selected{% endif %}>Read</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="form-label font-sm mb-1" for="notificationTypeFilter">Type</label>
+                    <select class="form-select form-select-sm" id="notificationTypeFilter" name="type">
+                        <option value="">All types</option>
+                        {% for value, label in notification_types %}
+                            <option value="{{ value }}" {% if type_filter == value %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-ev-outline btn-sm">Filter</button>
+                {% if read_filter != 'all' or type_filter %}
+                    <a href="{% url 'notifications:notification_list' %}" class="btn btn-ev-outline btn-sm">Clear</a>
+                {% endif %}
+            </form>
             <form method="post" action="{% url 'notifications:notification_mark_all_read' %}" class="mb-0">
                 {% csrf_token %}
-                <button type="submit" class="btn btn-ev-primary">
+                <button type="submit" class="btn btn-ev-primary btn-sm">
                     <i class="bi bi-check2-all me-1"></i> Mark all read
                 </button>
             </form>

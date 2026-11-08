@@ -21,6 +21,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import PermissionDenied
 from django.db.models import Q
 from django.utils import timezone
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse, reverse_lazy
@@ -37,6 +38,7 @@ from apps.accounts.models import EmailOTPChallenge
 from apps.core.rate_limit import is_rate_limited
 from apps.accounts.forms import (
     LoginForm,
+    NotificationPreferencesForm,
     OTPSetupForm,
     OTPVerificationForm,
     PasswordChangeForm,
@@ -317,6 +319,24 @@ class LogoutView(View):
 # USER PROFILE & SELF-SERVICE VIEWS
 # ==============================================================================
 
+class NotificationPreferencesView(LoginRequiredMixin, UpdateView):
+    model = User
+    form_class = NotificationPreferencesForm
+    template_name = 'accounts/notification_preferences.html'
+    success_url = reverse_lazy('accounts:preferences')
+
+    def get_object(self, queryset=None) -> User:
+        return self.request.user
+
+    def form_valid(self, form: NotificationPreferencesForm) -> HttpResponse:
+        response = super().form_valid(form)
+        from apps.hearings.services import reschedule_user_reminders
+
+        reschedule_user_reminders(self.request.user)
+        messages.success(self.request, 'Notification preferences saved.')
+        return response
+
+
 class ProfileView(LoginRequiredMixin, UpdateView):
     """
     Allows the authenticated user to view and update their profile details and notification preferences.
@@ -537,6 +557,7 @@ class UserListView(AdminRequiredMixin, ListView):
     def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
         context = super().get_context_data(**kwargs)
         context['roles'] = User.Role.choices
+        context['status_choices'] = [('pending', 'Pending'), ('approved', 'Approved'), ('inactive', 'Deactivated')]
         context['current_q'] = self.request.GET.get('q', '')
         context['current_role'] = self.request.GET.get('role', '')
         context['current_status'] = self.request.GET.get('status', '')
@@ -586,8 +607,10 @@ class ApproveUserView(AdminRequiredMixin, View):
         send_approval_email(user)
 
         messages.success(request, f"Account for {user.get_full_name() or user.email} has been approved and activated.")
-        next_url = request.POST.get('next')
-        if next_url and next_url.startswith('/'):
+        next_url = request.POST.get('next', '')
+        if url_has_allowed_host_and_scheme(
+            next_url, allowed_hosts={request.get_host()}, require_https=request.is_secure()
+        ):
             return redirect(next_url)
         return redirect('accounts:user_approval')
 
@@ -618,8 +641,10 @@ class RejectUserView(AdminRequiredMixin, View):
         send_rejection_email(user, reason=reason)
 
         messages.warning(request, f"Account for {user.get_full_name() or user.email} has been rejected / deactivated.")
-        next_url = request.POST.get('next')
-        if next_url and next_url.startswith('/'):
+        next_url = request.POST.get('next', '')
+        if url_has_allowed_host_and_scheme(
+            next_url, allowed_hosts={request.get_host()}, require_https=request.is_secure()
+        ):
             return redirect(next_url)
         return redirect('accounts:user_approval')
 

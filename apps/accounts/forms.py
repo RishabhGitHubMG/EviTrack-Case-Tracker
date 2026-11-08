@@ -244,7 +244,7 @@ class OTPSetupForm(forms.Form):
 
 class ProfileForm(forms.ModelForm):
     """
-    User self-management profile form for personal details and notification preferences.
+    User self-management profile form for personal details.
     """
     first_name = forms.CharField(
         max_length=150,
@@ -265,22 +265,6 @@ class ProfileForm(forms.ModelForm):
         required=False,
         widget=forms.CheckboxInput(attrs={'class': 'form-check-input', 'role': 'switch'}),
     )
-    notify_email = forms.BooleanField(
-        required=False,
-        label="Email Notifications",
-        widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}),
-    )
-    notify_sms = forms.BooleanField(
-        required=False,
-        label="SMS Urgent Alerts",
-        widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}),
-    )
-    notify_inapp = forms.BooleanField(
-        required=False,
-        label="In-App Notification Feed",
-        widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}),
-    )
-
     class Meta:
         model = User
         fields = [
@@ -288,10 +272,65 @@ class ProfileForm(forms.ModelForm):
             'last_name',
             'phone',
             'dark_mode',
+        ]
+
+
+class NotificationPreferencesForm(forms.ModelForm):
+    hearing_reminder_minutes = forms.MultipleChoiceField(
+        choices=((10080, '1 week before'), (1440, '1 day before'), (120, '2 hours before'), (30, '30 minutes before')),
+        required=False,
+        label='Hearing reminders',
+        widget=forms.CheckboxSelectMultiple,
+    )
+    deadline_reminder_minutes = forms.MultipleChoiceField(
+        choices=((4320, '3 days before'), (1440, '1 day before'), (120, '2 hours before')),
+        required=False,
+        label='Deadline reminders',
+        widget=forms.CheckboxSelectMultiple,
+    )
+    notify_email = forms.BooleanField(
+        required=False,
+        label='Email reminders',
+        widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+    )
+    notify_sms = forms.BooleanField(
+        required=False,
+        label='SMS reminders',
+        help_text='Add a phone number to your profile before enabling SMS reminders.',
+        widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+    )
+    notify_inapp = forms.BooleanField(
+        required=False,
+        label='In-app reminders',
+        widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+    )
+
+    class Meta:
+        model = User
+        fields = [
             'notify_email',
             'notify_sms',
             'notify_inapp',
+            'hearing_reminder_minutes',
+            'deadline_reminder_minutes',
         ]
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        super().__init__(*args, **kwargs)
+        self.initial['hearing_reminder_minutes'] = [str(value) for value in (self.instance.hearing_reminder_minutes or [10080, 1440, 120])]
+        self.initial['deadline_reminder_minutes'] = [str(value) for value in (self.instance.deadline_reminder_minutes or [4320, 1440])]
+
+    def clean_hearing_reminder_minutes(self) -> list[int]:
+        return [int(value) for value in self.cleaned_data['hearing_reminder_minutes']]
+
+    def clean_deadline_reminder_minutes(self) -> list[int]:
+        return [int(value) for value in self.cleaned_data['deadline_reminder_minutes']]
+
+    def clean_notify_sms(self) -> bool:
+        enabled = self.cleaned_data['notify_sms']
+        if enabled and not self.instance.phone:
+            raise ValidationError('Add a phone number to your profile before enabling SMS reminders.')
+        return enabled
 
 
 class PasswordChangeForm(forms.Form):

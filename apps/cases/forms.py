@@ -80,10 +80,16 @@ class CaseUpdateForm(forms.ModelForm):
         }
 
     def __init__(self, *args, **kwargs):
+        user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
         if self.instance and self.instance.pk:
             current_status = self.instance.status
             allowed_transitions = Case.VALID_TRANSITIONS.get(current_status, [])
+            if not user or not (getattr(user, 'is_admin', False) or getattr(user, 'is_case_manager', False)):
+                allowed_transitions = [
+                    status for status in allowed_transitions
+                    if status not in (Case.Status.CLOSED, Case.Status.ARCHIVED)
+                ]
             
             # Valid choices are the current status plus allowed next transitions
             available_choices = [(current_status, Case.Status(current_status).label)]

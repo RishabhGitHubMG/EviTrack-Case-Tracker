@@ -27,10 +27,10 @@
             </p>
         </div>
         <div class="d-flex align-items-center gap-2">
-            <button type="button" class="btn btn-ev-outline" data-bs-toggle="modal" data-bs-target="#outcomeModal">
-                <i class="bi bi-journal-check me-1"></i> Record Outcome
-            </button>
             {% if not request.user.is_reviewer %}
+                <button type="button" class="btn btn-ev-outline" data-bs-toggle="modal" data-bs-target="#outcomeModal">
+                    <i class="bi bi-journal-check me-1"></i> Record Outcome
+                </button>
                 <a href="{% url 'hearings:hearing_update' hearing.pk %}" class="btn btn-ev-primary">
                     <i class="bi bi-pencil-square me-1"></i> Edit Hearing
                 </a>
@@ -100,9 +100,11 @@
                         <div class="text-center py-4 text-muted">
                             <i class="bi bi-journal-text fs-3 d-block mb-2 text-secondary"></i>
                             <p class="small mb-2">No outcome has been recorded for this hearing yet.</p>
-                            <button type="button" class="btn btn-sm btn-ev-outline" data-bs-toggle="modal" data-bs-target="#outcomeModal">
-                                <i class="bi bi-plus-lg me-1"></i> Record Outcome Now
-                            </button>
+                            {% if not request.user.is_reviewer %}
+                                <button type="button" class="btn btn-sm btn-ev-outline" data-bs-toggle="modal" data-bs-target="#outcomeModal">
+                                    <i class="bi bi-plus-lg me-1"></i> Record Outcome Now
+                                </button>
+                            {% endif %}
                         </div>
                     {% endif %}
 
@@ -115,9 +117,11 @@
                                     <div class="small">{{ hearing.next_hearing_date|date:"l, F d, Y \a\\t H:i" }}</div>
                                 </div>
                             </div>
-                            <a href="{% url 'hearings:hearing_create' case.pk %}" class="btn btn-sm btn-ev-primary">
-                                Create New Session
-                            </a>
+                            {% if not request.user.is_reviewer %}
+                                <a href="{% url 'hearings:hearing_create' case.pk %}" class="btn btn-sm btn-ev-primary">
+                                    Create New Session
+                                </a>
+                            {% endif %}
                         </div>
                     {% endif %}
                 </div>
@@ -177,7 +181,7 @@
     </div>
 </div>
 
-<!-- Modal: Record Hearing Outcome -->
+{% if not request.user.is_reviewer %}
 <div class="modal fade" id="outcomeModal" tabindex="-1" aria-labelledby="outcomeModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content">
@@ -213,4 +217,5 @@
         </div>
     </div>
 </div>
+{% endif %}
 {% endblock %}

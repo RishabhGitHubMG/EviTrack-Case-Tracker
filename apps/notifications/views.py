@@ -29,13 +29,26 @@ class NotificationListView(LoginRequiredMixin, ListView):
 
     def get_queryset(self):
         queryset = Notification.objects.filter(user=self.request.user)
-        if self.request.GET.get('unread') == '1':
+        read_filter = self.request.GET.get('read', 'all')
+        if read_filter == 'unread':
             queryset = queryset.filter(is_read=False)
+        elif read_filter == 'read':
+            queryset = queryset.filter(is_read=True)
+
+        notification_type = self.request.GET.get('type', '')
+        valid_types = dict(Notification.NotificationType.choices)
+        if notification_type in valid_types:
+            queryset = queryset.filter(notification_type=notification_type)
         return queryset
 
     def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
         context = super().get_context_data(**kwargs)
-        context['unread_only'] = self.request.GET.get('unread') == '1'
+        read_filter = self.request.GET.get('read', 'all')
+        context.update({
+            'read_filter': read_filter if read_filter in {'all', 'read', 'unread'} else 'all',
+            'type_filter': self.request.GET.get('type', '') if self.request.GET.get('type', '') in dict(Notification.NotificationType.choices) else '',
+            'notification_types': Notification.NotificationType.choices,
+        })
         return context
 
 

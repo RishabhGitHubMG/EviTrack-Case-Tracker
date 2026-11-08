@@ -98,13 +98,19 @@ class HearingCreateView(CaseAccessMixin, View):
     def get_case(self) -> Case:
         case_id = self.kwargs.get('case_id')
         case = get_object_or_404(Case, pk=case_id)
-        if not check_case_access(self.request.user, case):
+        if self.request.user.is_reviewer or not check_case_access(self.request.user, case):
             raise PermissionDenied("You do not have access to this case.")
         return case
 
     def get(self, request: HttpRequest, case_id: int) -> HttpResponse:
         case = self.get_case()
-        form = HearingForm(case=case)
+        initial = {}
+        selected_date = parse_datetime(request.GET.get('date', ''))
+        if selected_date:
+            if timezone.is_aware(selected_date):
+                selected_date = timezone.localtime(selected_date)
+            initial['hearing_date'] = selected_date.strftime('%Y-%m-%dT%H:%M')
+        form = HearingForm(case=case, initial=initial)
         return render(request, self.template_name, {
             'form': form,
             'case': case,
@@ -180,7 +186,7 @@ class HearingUpdateView(CaseAccessMixin, View):
     def get_hearing(self) -> Hearing:
         pk = self.kwargs.get('pk')
         hearing = get_object_or_404(Hearing.objects.select_related('case'), pk=pk)
-        if not check_case_access(self.request.user, hearing.case):
+        if self.request.user.is_reviewer or not check_case_access(self.request.user, hearing.case):
             raise PermissionDenied("You do not have access to this case.")
         return hearing
 
@@ -227,7 +233,7 @@ class HearingOutcomeView(CaseAccessMixin, View):
 
     def post(self, request: HttpRequest, pk: int) -> HttpResponse:
         hearing = get_object_or_404(Hearing.objects.select_related('case'), pk=pk)
-        if not check_case_access(request.user, hearing.case):
+        if request.user.is_reviewer or not check_case_access(request.user, hearing.case):
             raise PermissionDenied("You do not have access to this case.")
 
         form = HearingOutcomeForm(request.POST, instance=hearing)
@@ -437,6 +443,7 @@ class CalendarView(LoginRequiredMixin, TemplateView):
         accessible_cases = get_user_accessible_cases(self.request.user)
         context.update({
             'accessible_cases': accessible_cases,
+            'can_manage_hearings': not self.request.user.is_reviewer,
         })
         return context
 

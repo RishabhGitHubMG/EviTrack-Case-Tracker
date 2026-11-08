@@ -252,7 +252,7 @@ class EvidenceUploadView(LoginRequiredMixin, ReadOnlyMixin, View):
                 return redirect('evidence:evidence_detail', pk=item.pk)
             else:
                 messages.success(request, f"Successfully lodged {len(created_items)} evidence files into Vault.")
-                return redirect(f"{reverse('cases:case_detail', kwargs={'pk': case.pk})}#evidence")
+                return redirect(f"{reverse('cases:case_detail', kwargs={'pk': case.pk})}?tab=evidence#evidence")
 
         return redirect('evidence:evidence_upload', case_id=case.pk)
 
@@ -473,7 +473,7 @@ class EvidenceVerifyView(LoginRequiredMixin, View):
         })
 
 
-class EvidenceBulkVerifyView(LoginRequiredMixin, View):
+class EvidenceBulkVerifyView(LoginRequiredMixin, ReadOnlyMixin, View):
     """
     Initiate bulk cryptographic verification across all evidence items in a case.
     Dispatches Celery background worker if available; otherwise falls back to synchronous execution.
@@ -498,7 +498,7 @@ class EvidenceBulkVerifyView(LoginRequiredMixin, View):
             if request.headers.get('x-requested-with') == 'XMLHttpRequest':
                 return JsonResponse({'status': 'queued', 'message': 'Bulk verification dispatched to background worker.'})
             messages.info(request, "Bulk verification task dispatched to background worker.")
-            return redirect(f"{reverse('cases:case_detail', kwargs={'pk': case.pk})}#evidence")
+            return redirect(f"{reverse('cases:case_detail', kwargs={'pk': case.pk})}?tab=evidence#evidence")
 
         # Synchronous fallback execution
         from apps.evidence.tasks import verify_case_evidence_task
@@ -511,7 +511,7 @@ class EvidenceBulkVerifyView(LoginRequiredMixin, View):
             request,
             f"Bulk check completed: {summary.get('verified', 0)} of {summary.get('total', 0)} evidence items verified intact."
         )
-        return redirect(f"{reverse('cases:case_detail', kwargs={'pk': case.pk})}#evidence")
+        return redirect(f"{reverse('cases:case_detail', kwargs={'pk': case.pk})}?tab=evidence#evidence")
 
 
 class EvidenceQRView(LoginRequiredMixin, View):

@@ -1,6 +1,4 @@
 from django.urls import path
-from django.views.generic import RedirectView
-
 from apps.accounts import views
 
 app_name = 'accounts'
@@ -11,7 +9,7 @@ urlpatterns = [
     path('register/', views.RegisterView.as_view(), name='register'),
     path('otp/', views.OTPVerifyView.as_view(), name='otp_verify'),
     path('profile/', views.ProfileView.as_view(), name='profile'),
-    path('preferences/', RedirectView.as_view(pattern_name='accounts:profile'), name='preferences'),
+    path('preferences/', views.NotificationPreferencesView.as_view(), name='preferences'),
     path('password/', views.PasswordChangeView.as_view(), name='password_change'),
     path('security/otp/', views.OTPSetupView.as_view(), name='otp_setup'),
     path('users/', views.UserListView.as_view(), name='user_list'),

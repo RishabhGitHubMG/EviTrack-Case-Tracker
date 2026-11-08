@@ -26,13 +26,19 @@
             {% for value, label in roles %}<option value="{{ value }}" {% if value == current_role %}selected{% endif %}>{{ label }}</option>{% endfor %}
         </select>
     </div>
+    <div class="col-md-2">
+        <select name="status" class="form-select" aria-label="Filter by account status">
+            <option value="">All statuses</option>
+            {% for value, label in status_choices %}<option value="{{ value }}" {% if value == current_status %}selected{% endif %}>{{ label }}</option>{% endfor %}
+        </select>
+    </div>
     <div class="col-md-2"><button class="btn btn-ev-outline w-100" type="submit">Filter</button></div>
 </form>
 
 {% if users %}
 <div class="card-ev table-responsive">
     <table class="table table-hover align-middle mb-0">
-        <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Status</th><th>Last login</th></tr></thead>
+        <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Status</th><th>Last login</th><th>Change role</th></tr></thead>
         <tbody>
         {% for u in users %}
             <tr>
@@ -45,6 +51,15 @@
                     {% else %}<span class="badge-ev badge-success">Active</span>{% endif %}
                 </td>
                 <td class="font-sm text-muted">{{ u.last_login|date:"d M Y H:i"|default:"Never" }}</td>
+                <td>
+                    <form method="post" action="{% url 'accounts:user_role' u.pk %}" class="d-flex gap-2">
+                        {% csrf_token %}
+                        <select name="role" class="form-select form-select-sm" aria-label="Role for {{ u.email }}">
+                            {% for value, label in roles %}<option value="{{ value }}" {% if value == u.role %}selected{% endif %}>{{ label }}</option>{% endfor %}
+                        </select>
+                        <button type="submit" class="btn btn-sm btn-ev-outline">Save</button>
+                    </form>
+                </td>
             </tr>
         {% endfor %}
         </tbody>

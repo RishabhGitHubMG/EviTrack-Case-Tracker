@@ -312,12 +312,6 @@
      5. TOAST NOTIFICATION SYSTEM
      ========================================================================== */
 
-  /**
-   * Displays a floating toast notification.
-   * @param {string} message The text content or HTML string.
-   * @param {'success'|'danger'|'warning'|'info'} type The alert type.
-   * @param {number} duration Duration in milliseconds before auto-dismissal.
-   */
   EviTrack.showToast = function (message, type = 'info', duration = 5000) {
     let container = document.querySelector('.toast-container');
     if (!container) {
@@ -334,20 +328,26 @@
     else if (type === 'danger' || type === 'error') iconClass = 'bi-exclamation-triangle-fill';
     else if (type === 'warning') iconClass = 'bi-exclamation-circle-fill';
 
-    toast.innerHTML = `
-      <div class="ev-toast-body">
-        <i class="bi ${iconClass} ev-toast-icon"></i>
-        <div class="ev-toast-message">${message}</div>
-        <button type="button" class="ev-toast-close" aria-label="Close">
-          <i class="bi bi-x-lg"></i>
-        </button>
-      </div>
-      <div class="ev-toast-progress"></div>
-    `;
-
+    const body = document.createElement('div');
+    body.className = 'ev-toast-body';
+    const icon = document.createElement('i');
+    icon.className = `bi ${iconClass} ev-toast-icon`;
+    const messageElement = document.createElement('div');
+    messageElement.className = 'ev-toast-message';
+    messageElement.textContent = message;
+    const closeButton = document.createElement('button');
+    closeButton.type = 'button';
+    closeButton.className = 'ev-toast-close';
+    closeButton.setAttribute('aria-label', 'Close');
+    const closeIcon = document.createElement('i');
+    closeIcon.className = 'bi bi-x-lg';
+    closeButton.appendChild(closeIcon);
+    body.append(icon, messageElement, closeButton);
+    const progressBar = document.createElement('div');
+    progressBar.className = 'ev-toast-progress';
+    toast.append(body, progressBar);
     container.appendChild(toast);
 
-    const progressBar = toast.querySelector('.ev-toast-progress');
     if (progressBar && duration > 0) {
       progressBar.style.transition = `transform ${duration}ms linear`;
       requestAnimationFrame(() => {

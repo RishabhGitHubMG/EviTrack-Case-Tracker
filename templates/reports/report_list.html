@@ -5,6 +5,21 @@
 
 {% block content %}
 <div class="page-header mb-4"><h1 class="page-title">Reports</h1><p class="text-muted mb-0">Generate audit-logged PDF reports for cases you can access.</p></div>
+{% if accessible_cases %}
+<form method="get" class="row g-2 align-items-end mb-3">
+    <div class="col-md-6">
+        <label for="reportCaseSelect" class="form-label font-sm">Choose a case</label>
+        <select id="reportCaseSelect" name="case" class="form-select">
+            <option value="">All accessible cases</option>
+            {% for case in accessible_cases %}
+                <option value="{{ case.pk }}" {% if selected_case == case.pk %}selected{% endif %}>{{ case.case_no }} — {{ case.title }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="col-auto"><button type="submit" class="btn btn-ev-outline">Show reports</button></div>
+    {% if selected_case %}<div class="col-auto"><a href="{% url 'reports:report_list' %}" class="btn btn-ev-outline">Clear</a></div>{% endif %}
+</form>
+{% endif %}
 {% if cases %}
 <div class="card-ev table-responsive">
     <table class="table table-hover align-middle mb-0">

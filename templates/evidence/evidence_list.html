@@ -13,16 +13,22 @@
 
 <form method="get" class="row g-2 mb-3">
     <div class="col-md-4"><input type="search" name="q" value="{{ search_query }}" class="form-control" placeholder="Search title, number or hash" aria-label="Search evidence"></div>
-    <div class="col-md-3">
+    <div class="col-md-2">
         <select name="case" class="form-select" aria-label="Filter by case">
             <option value="">All cases</option>
             {% for c in cases %}<option value="{{ c.pk }}">{{ c.case_no }}</option>{% endfor %}
         </select>
     </div>
-    <div class="col-md-3">
+    <div class="col-md-2">
         <select name="status" class="form-select" aria-label="Filter by status">
             <option value="">All statuses</option>
             {% for value, label in status_choices %}<option value="{{ value }}" {% if value == selected_status %}selected{% endif %}>{{ label }}</option>{% endfor %}
+        </select>
+    </div>
+    <div class="col-md-2">
+        <select name="tag" class="form-select" aria-label="Filter by tag">
+            <option value="">All tags</option>
+            {% for tag in all_tags %}<option value="{{ tag.name }}" {% if selected_tag == tag.name %}selected{% endif %}>{{ tag.name }}</option>{% endfor %}
         </select>
     </div>
     <div class="col-md-2"><button class="btn btn-ev-outline w-100" type="submit">Filter</button></div>
