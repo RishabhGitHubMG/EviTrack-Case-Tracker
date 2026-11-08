@@ -3,6 +3,7 @@
 Base: `/api/v1`. Session cookie + CSRF (`X-CSRFToken`). JSON unless noted. Errors use the shape in `BACKEND.md` §3. Pagination `{count,next,previous,results}` (page size 20, `?page=`). "Scope" = server filters to what the user may see.
 Permissions: **A** Admin · **M** Case Manager · **I** Investigator/Advocate · **C** Custodian · **R** Reviewer · **Any** any approved signed-in user.
 If the real implementation differs, update this file in the same commit.
+Machine source: `docs/openapi.yaml`, generated with `python manage.py export_openapi` from `/api/v1/` routes only (the same routes `/api/schema/` serves). Regenerate and commit it after every v1 change.
 
 ## S0 – Foundations
 | Method | Path | Notes |
@@ -132,3 +133,7 @@ No new endpoints. Adds: CSP/throttle verification, schema freeze check, SPA catc
 
 ## Shared shapes (summary)
 `UserRef {id,name,role,initials}` · `CaseRef {id,case_no,title}` · `Pill {value,label}` · `EvidenceCard {id,evidence_no,title,case:CaseRef,file_type,size,tags[],sha256_short,integrity:{state,checked_at},holder:UserRef,version,thumbnail_url?}` · `Notification {id,type,message,link,is_read,created_at}`.
+
+## Requests to backend
+Frontend (Agent B) adds requests here. Agent A handles them in its next batch and marks them done with the commit.
+- (none yet)

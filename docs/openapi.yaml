@@ -1,0 +1,42 @@
+openapi: 3.0.3
+info:
+  title: EviTrack API
+  version: 1.0.0
+paths:
+  /api/v1/auth/csrf/:
+    get:
+      operationId: auth_csrf_retrieve
+      tags:
+      - auth
+      security:
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Status'
+          description: ''
+  /api/v1/health/:
+    get:
+      operationId: health_retrieve
+      tags:
+      - health
+      security:
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Status'
+          description: ''
+components:
+  schemas:
+    Status:
+      type: object
+      properties:
+        status:
+          type: string
+      required:
+      - status

@@ -8,7 +8,7 @@ Priority: **H** high, **M** medium, **L** low. IDs: `BE-S<slice>-<n>`. Requireme
 - [x] BE-S0-03 (H) Custom exception handler producing the standard error shape and codes
 - [x] BE-S0-04 (H) Shared permission classes: `IsApprovedUser`, `HasRole`, `CaseObjectPermission` (reuse existing access helpers)
 - [x] BE-S0-05 (M) Shared pagination class and `UserRef`/`CaseRef` serializers
-- [ ] BE-S0-06 (M) Test settings: file-based email backend for Playwright OTP (test/dev only, impossible in production settings) + helper docs (not verified: production settings check could not initialize because the environment lacks psycopg)
+- [x] BE-S0-06 (M) Test settings: file-based email backend for Playwright OTP (test/dev only, impossible in production settings) + helper docs (not verified: full production Django initialization, because the environment lacks psycopg; EMAIL_BACKEND resolution was checked per settings module)
 - [x] BE-S0-07 (M) Tests: health, csrf, error shape, 401 shape; schema generation test
 
 ## S1 Landing
