@@ -75,8 +75,10 @@
                     <td>{{ party.get_party_type_display }}</td>
                     <td class="font-sm">{{ party.email|default:"" }} {{ party.phone|default:"" }}</td>
                     <td class="text-end">
+                        {% if can_manage %}
                         <a href="{% url 'cases:party_update' case.pk party.pk %}" class="btn btn-sm btn-ev-outline">Edit</a>
                         <a href="{% url 'cases:party_delete' case.pk party.pk %}" class="btn btn-sm btn-ev-outline">Delete</a>
+                        {% endif %}
                     </td>
                 </tr>
             {% endfor %}

@@ -40,6 +40,14 @@ from apps.hearings.models import Hearing, Task
 User = get_user_model()
 
 
+def _user_can_manage_case(user: User, case: Case) -> bool:
+    return bool(
+        user.is_admin
+        or user.is_case_manager
+        or case.assignments.filter(user=user, role_on_case=CaseAssignment.RoleOnCase.LEAD).exists()
+    )
+
+
 class CaseListView(LoginRequiredMixin, CaseAccessMixin, ListView):
     """
     Paginated, filterable, sortable list of cases accessible to the authenticated user.
@@ -107,10 +115,20 @@ class CaseListView(LoginRequiredMixin, CaseAccessMixin, ListView):
         ).count()
         context['current_sort'] = self.request.GET.get('sort', 'opened_on')
         context['current_dir'] = self.request.GET.get('dir', 'desc')
+        context['can_create_case'] = getattr(self.request.user, 'is_admin', False) or getattr(self.request.user, 'is_case_manager', False)
+        sort_urls = {}
+        for field in ('case_no', 'title', 'opened_on'):
+            params = self.request.GET.copy()
+            params.pop('page', None)
+            direction = 'desc' if context['current_sort'] == field and context['current_dir'] == 'asc' else 'asc'
+            params['sort'] = field
+            params['dir'] = direction
+            sort_urls[field] = f'?{params.urlencode()}'
+        context['sort_urls'] = sort_urls
         return context
 
 
-class CaseCreateView(LoginRequiredMixin, ReadOnlyMixin, CreateView):
+class CaseCreateView(LoginRequiredMixin, CaseManagerOrAdminMixin, ReadOnlyMixin, CreateView):
     """
     Create a new case. Automatically assigns creator as Lead on the case and records audit trail.
     """
@@ -164,11 +182,14 @@ class CaseUpdateView(LoginRequiredMixin, ReadOnlyMixin, CaseAccessMixin, UpdateV
         case = self.get_object()
         user = request.user
         # Only Admin, Case Manager, or designated Lead can edit core case properties
-        is_lead = case.assignments.filter(user=user, role_on_case=CaseAssignment.RoleOnCase.LEAD).exists()
-        can_edit = getattr(user, 'is_admin', False) or getattr(user, 'is_case_manager', False) or is_lead
-        if not can_edit:
+        if not _user_can_manage_case(user, case):
             raise PermissionDenied("Only Case Managers, Admins, or Case Leads can modify case details.")
         return super().dispatch(request, *args, **kwargs)
+
+    def get_form_kwargs(self) -> dict[str, Any]:
+        kwargs = super().get_form_kwargs()
+        kwargs['user'] = self.request.user
+        return kwargs
 
     def form_valid(self, form: CaseUpdateForm) -> HttpResponse:
         old_status = self.object.status
@@ -257,10 +278,8 @@ class CaseDetailView(LoginRequiredMixin, CaseAccessMixin, DetailView):
         context['audit_entries'] = audit_entries
 
         # Permission checks
-        is_manager_or_admin = getattr(user, 'is_admin', False) or getattr(user, 'is_case_manager', False)
-        is_lead = assignments.filter(user=user, role_on_case=CaseAssignment.RoleOnCase.LEAD).exists()
-        context['can_manage'] = is_manager_or_admin or is_lead
-        context['can_assign'] = is_manager_or_admin
+        context['can_manage'] = _user_can_manage_case(user, case)
+        context['can_assign'] = user.is_admin or user.is_case_manager
         context['is_reviewer'] = getattr(user, 'is_reviewer', False)
 
         # Inline/Modal Forms
@@ -365,6 +384,8 @@ class PartyCreateView(LoginRequiredMixin, ReadOnlyMixin, CaseAccessMixin, View):
     def post(self, request: HttpRequest, pk: int) -> HttpResponse:
         case = get_object_or_404(Case, pk=pk)
         require_case_access(self.request.user, case)
+        if not _user_can_manage_case(self.request.user, case):
+            raise PermissionDenied("Only Case Managers, Admins, or Case Leads can manage parties.")
 
         form = PartyForm(request.POST)
         if form.is_valid():
@@ -404,6 +425,8 @@ class PartyUpdateView(LoginRequiredMixin, ReadOnlyMixin, CaseAccessMixin, Update
     def dispatch(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
         party = self.get_object()
         require_case_access(self.request.user, party.case)
+        if not _user_can_manage_case(self.request.user, party.case):
+            raise PermissionDenied("Only Case Managers, Admins, or Case Leads can manage parties.")
         return super().dispatch(request, *args, **kwargs)
 
     def form_valid(self, form: PartyForm) -> HttpResponse:
@@ -440,6 +463,8 @@ class PartyDeleteView(LoginRequiredMixin, ReadOnlyMixin, CaseAccessMixin, Delete
     def dispatch(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
         party = self.get_object()
         require_case_access(self.request.user, party.case)
+        if not _user_can_manage_case(self.request.user, party.case):
+            raise PermissionDenied("Only Case Managers, Admins, or Case Leads can manage parties.")
         return super().dispatch(request, *args, **kwargs)
 
     def delete(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:

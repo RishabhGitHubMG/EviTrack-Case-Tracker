@@ -557,6 +557,7 @@ class UserListView(AdminRequiredMixin, ListView):
     def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
         context = super().get_context_data(**kwargs)
         context['roles'] = User.Role.choices
+        context['status_choices'] = [('pending', 'Pending'), ('approved', 'Approved'), ('inactive', 'Deactivated')]
         context['current_q'] = self.request.GET.get('q', '')
         context['current_role'] = self.request.GET.get('role', '')
         context['current_status'] = self.request.GET.get('status', '')

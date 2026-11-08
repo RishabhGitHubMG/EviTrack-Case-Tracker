@@ -26,6 +26,30 @@ def test_report_list_only_shows_accessible_cases(client_for, make_user, make_cas
     assert response.status_code == 200
     assert visible in response.context['cases']
     assert hidden not in response.context['cases']
+    assert b'Choose a case' in response.content
+    for route_name in REPORT_URLS:
+        assert reverse(route_name, kwargs={'case_id': visible.pk}).encode() in response.content
+    assert reverse('reports:case_summary', kwargs={'case_id': hidden.pk}).encode() not in response.content
+
+
+@pytest.mark.django_db
+def test_report_case_picker_filters_to_accessible_selection(client_for, make_user, make_case):
+    user = make_user()
+    visible = make_case(assignees=[user], title='Visible report case')
+    hidden = make_case(title='Hidden report case')
+    client = client_for(user)
+
+    response = client.get(reverse('reports:report_list'), {'case': str(visible.pk)})
+
+    assert response.status_code == 200
+    assert list(response.context['cases']) == [visible]
+    assert response.context['selected_case'] == visible.pk
+    assert f'value="{visible.pk}" selected'.encode() in response.content
+
+    response = client.get(reverse('reports:report_list'), {'case': str(hidden.pk)})
+    assert response.status_code == 200
+    assert list(response.context['cases']) == []
+    assert hidden.title.encode() not in response.content
 
 
 @pytest.mark.parametrize('route_name', REPORT_URLS)

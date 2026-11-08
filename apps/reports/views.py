@@ -110,8 +110,18 @@ REPORTS = {
 
 class ReportListView(LoginRequiredMixin, View):
     def get(self, request):
+        accessible_cases = get_user_accessible_cases(request.user).order_by('case_no')
+        cases = accessible_cases
+        selected_case = request.GET.get('case', '').strip()
+        if selected_case.isdigit():
+            selected_case = int(selected_case)
+            cases = cases.filter(pk=selected_case)
+        else:
+            selected_case = ''
         return render(request, 'reports/report_list.html', {
-            'cases': get_user_accessible_cases(request.user).order_by('case_no'),
+            'cases': cases,
+            'accessible_cases': accessible_cases,
+            'selected_case': selected_case,
         })
 
 

@@ -6,7 +6,7 @@
 {% block content %}
 <div class="page-header mb-4 d-flex justify-content-between align-items-center flex-wrap gap-2">
     <h1 class="page-title">Cases</h1>
-    <a href="{% url 'cases:case_create' %}" class="btn btn-ev-primary btn-sm"><i class="bi bi-plus-lg"></i> New Case</a>
+    {% if can_create_case %}<a href="{% url 'cases:case_create' %}" class="btn btn-ev-primary btn-sm"><i class="bi bi-plus-lg"></i> New Case</a>{% endif %}
 </div>
 
 <div class="row g-3 mb-4">
@@ -27,12 +27,12 @@
     <table class="table table-hover align-middle mb-0">
         <thead>
             <tr>
-                <th><a href="?sort=case_no&dir={% if current_sort == 'case_no' and current_dir == 'asc' %}desc{% else %}asc{% endif %}&{{ request.GET.urlencode }}" class="text-reset">Case No.</a></th>
-                <th><a href="?sort=title&dir={% if current_sort == 'title' and current_dir == 'asc' %}desc{% else %}asc{% endif %}" class="text-reset">Title</a></th>
+                <th><a href="{{ sort_urls.case_no }}" class="text-reset">Case No.</a></th>
+                <th><a href="{{ sort_urls.title }}" class="text-reset">Title</a></th>
                 <th>Type</th>
                 <th>Status</th>
                 <th>Priority</th>
-                <th><a href="?sort=opened_on&dir={% if current_sort == 'opened_on' and current_dir == 'asc' %}desc{% else %}asc{% endif %}" class="text-reset">Opened</a></th>
+                <th><a href="{{ sort_urls.opened_on }}" class="text-reset">Opened</a></th>
             </tr>
         </thead>
         <tbody>
@@ -51,6 +51,10 @@
 </div>
 {% include 'partials/pagination.html' %}
 {% else %}
-    {% include 'partials/empty_state.html' with icon='bi-folder2-open' title='No cases found' message='Create a case or adjust your filters.' %}
+    {% if can_create_case %}
+        {% include 'partials/empty_state.html' with icon='bi-folder2-open' title='No cases found' message='Create a case or adjust your filters.' %}
+    {% else %}
+        {% include 'partials/empty_state.html' with icon='bi-folder2-open' title='No cases found' message='Adjust your filters or contact a Case Manager.' %}
+    {% endif %}
 {% endif %}
 {% endblock %}

@@ -15,7 +15,7 @@ Shell status: sidebar and topbar share `templates/partials/`. Every authenticate
 | `core:landing` | `/` | `landing.html` | Entry page; Sign In CTA | Copy claims unbuilt features (MD5 dual hash, scheduled re-verification, dual-sign custody receipts, CJIS/ISO certification). No "How it works" section. | Partial |
 | `accounts:login` | `/accounts/login/` | `accounts/login.html` (auth_base) | Landing CTA; register link | Pending-approval message is a flash message only | Complete (code) |
 | `accounts:otp_verify` | `/accounts/otp/` | `accounts/otp_verify.html` | Login flow only | Email and TOTP steps share one template with an instruction line; no resend link | Complete (code) |
-| `accounts:register` | `/accounts/register/` | `accounts/register.html` (base_minimal) | Login page link | Needs inline validation check and layout review | Partial |
+| `accounts:register` | `/accounts/register/` | `accounts/register.html` (base_minimal) | Login page link | Inline errors and password-strength feedback; pending approval copy is accurate. Invalid inputs and pending account state tested; browser not verified. | Complete (code) |
 | `accounts:logout` | `/accounts/logout/` | view (redirect) | Topbar user menu, session modal | none | Complete |
 | `errors` 403, 404, 500 | handlers | `errors/403.html`, `404.html`, `500.html` | Error handlers | Browser check not run | Complete (code) |
 
@@ -36,22 +36,22 @@ Shell status: sidebar and topbar share `templates/partials/`. Every authenticate
 | `accounts:preferences` | `/accounts/preferences/` | `accounts/notification_preferences.html` | User menu "Preferences", profile | Reminder channels and timing saved; pending reminders are rescheduled | Complete (code, targeted tests; browser not verified) |
 | `accounts:password_change` | `/accounts/password/` | `accounts/password_change.html` | Profile | Successful change not run in browser | Complete (code) |
 | `accounts:otp_setup` | `/accounts/security/otp/` | `accounts/otp_setup.html` | Security redirect | Reached only via redirect | Partial |
-| `accounts:security_settings` | `/accounts/security/` | redirect to otp_setup | Sidebar "Security & Policy" (admin) | No security settings page | Missing |
-| `accounts:user_list` | `/accounts/users/` | `accounts/user_list.html` | Sidebar (admin) | Role filter and status filter present; no link to approvals or failed logins | Partial |
-| `accounts:user_approval` | `/accounts/users/approvals/` | `accounts/user_approval.html` | Dashboard card only | Not in sidebar | Partial |
+| `accounts:security_settings` | `/accounts/security/` | `accounts/security.html` | Admin sidebar "Security & Policy" | Read-only settings values; admin-only access and link tested | Complete (code) |
+| `accounts:user_list` | `/accounts/users/` | `accounts/user_list.html` | Admin sidebar | Search, role/status filters, approval link, and role-change form; filters and role change tested | Complete (code) |
+| `accounts:user_approval` | `/accounts/users/approvals/` | `accounts/user_approval.html` | Admin sidebar, user list, dashboard card | Admin-only queue; approve/reject actions tested | Complete (code) |
 | `accounts:user_approve`, `user_reject`, `user_role` | POST | view redirects | Approval and user pages | none | Complete (code) |
-| `accounts:failed_logins` | `/accounts/failed-logins/` | `accounts/failed_logins.html` | Not linked | Not in sidebar or user pages | Partial |
+| `accounts:failed_logins` | `/accounts/failed-logins/` | `accounts/failed_logins.html` | Admin sidebar | Admin-only; empty state and page render tested | Complete (code) |
 
 ### 1d. Cases
 
 | URL name | Path | Template | Linked from | Gaps | Status |
 |---|---|---|---|---|---|
-| `cases:case_list` | `/cases/` | `cases/case_list.html` | Sidebar | Column header sort links append a duplicate `sort`/`dir` query; no empty-state action; no loading state | Partial |
-| `cases:case_create` | `/cases/create/` | `cases/case_create.html` (extends case_form) | List "New Case" | none found in review | Complete (code) |
-| `cases:case_detail` | `/cases/<pk>/` | `cases/case_detail.html` | List rows, search, dashboard | Nine tabs (Overview, Parties, Evidence, Custody, Hearings, Tasks, Team, Timeline, Audit). Case Managers/Admins can bulk verify evidence; assignment controls match endpoint permissions. | Partial |
-| `cases:case_update` | `/cases/<pk>/edit/` | `cases/case_update.html` | Case detail | Status dropdown limited to allowed transitions (form logic) | Complete (code) |
+| `cases:case_list` | `/cases/` | `cases/case_list.html` | Sidebar | Sort links preserve filters without duplicate sort parameters; empty-state action is role-aware. Loading state remains a polish item. | Partial |
+| `cases:case_create` | `/cases/create/` | `cases/case_create.html` (extends case_form) | List "New Case" (Case Manager/Admin) | Case Manager/Admin-only access tested | Complete (code) |
+| `cases:case_detail` | `/cases/<pk>/` | `cases/case_detail.html` | List rows, search, dashboard | Nine tabs (Overview, Parties, Evidence, Custody, Hearings, Tasks, Team, Timeline, Audit). Case Managers/Admins can bulk verify evidence; manager/lead party controls and assignment controls match endpoint permissions. | Partial |
+| `cases:case_update` | `/cases/<pk>/edit/` | `cases/case_update.html` | Case detail | Leads can edit details but cannot close/archive; terminal status changes are limited to Case Managers/Admins and tested. | Complete (code) |
 | `cases:case_assign`, `case_unassign` | POST | view redirects | Team tab | Case Managers/Admins can assign/remove; successful actions return to Team. Leads cannot assign despite case-edit privileges. Manager flow and lead denial tests pass. | Complete (code) |
-| `cases:party_create`, `party_update`, `party_delete` | forms | `cases/party_form.html`, `cases/party_confirm_delete.html` | Parties tab | Party create form is inside the tab | Complete (code) |
+| `cases:party_create`, `party_update`, `party_delete` | forms | `cases/party_form.html`, `cases/party_confirm_delete.html` | Parties tab | Create/edit/delete controls and endpoints are restricted to Case Managers/Admins/Leads; member denial tested | Complete (code) |
 | `cases:case_timeline` | `/cases/<pk>/timeline/` | `cases/case_timeline.html`, `partials/timeline_content.html` | Timeline tab | none found in review | Complete (code) |
 
 ### 1e. Evidence
@@ -100,9 +100,9 @@ Shell status: sidebar and topbar share `templates/partials/`. Every authenticate
 | `notifications:notification_list` | `/notifications/` | `notifications/notification_list.html` | Sidebar, bell | Read-state (all/read/unread) and type filters; Mark all read and Mark read present. Filter tests pass; browser not verified. | Complete (code) |
 | `notifications:notification_detail` | `/notifications/<pk>/` | open view (redirect) | Bell items | none found in review | Complete (code) |
 | `notifications:notification_mark_read`, `mark_all_read` | POST | views | Notification page | none found in review | Complete (code) |
-| `reports:report_list` | `/reports/` | `reports/report_list.html` | Sidebar | Case table with five PDF buttons per case. Spec asks for a case picker; current layout is a list of all accessible cases. | Partial |
+| `reports:report_list` | `/reports/` | `reports/report_list.html` | Sidebar | Accessible-case picker supports one case or all; five PDF actions are tested. Browser not verified. | Complete (code) |
 | `reports:case_summary`, `evidence_register`, `custody_history`, `hearing_schedule`, `integrity_report` | `/reports/cases/<id>/*.pdf` | PDF response | Report list | Tested in pytest; not browser-checked | Complete (code) |
-| `audit:audit_log_list` | `/audit/` | `audit/audit_log_list.html` | Sidebar (admin) | Filters (user, action, date range) and CSV export present. No verify-chain button; verification exists only as Django admin action. | Partial |
+| `audit:audit_log_list` | `/audit/` | `audit/audit_log_list.html` | Admin sidebar | User, action, case, and date filters; CSV export and POST verify-chain action tested; admin-only access. Browser not verified. | Complete (code) |
 | `audit:my_activity` | `/audit/my-activity/` | `audit/audit_log_list.html` | Topbar user menu | Same template as audit log | Complete (code) |
 | `audit:audit_log_export` | `/audit/export.csv` | CSV response | Audit page | none found in review | Complete (code) |
 
@@ -110,17 +110,17 @@ Shell status: sidebar and topbar share `templates/partials/`. Every authenticate
 
 | Screen | Gap | Status |
 |---|---|---|
-| Search results page (`/search/`) | Not built. Only the topbar dropdown exists. | Missing |
+| Search results page (`/search/`) | Grouped case/party/evidence results scoped to accessible cases | Complete (code; browser not verified) |
 | Notification preferences | Persistent channel/timing fields, dedicated form/page, reminder rescheduling | Complete (code; browser not verified) |
-| Security & Policy page | Sidebar link redirects to OTP setup. | Missing |
-| Verify-chain control on audit page | Admin action only | Missing |
+| Security & Policy page | Admin-only read-only settings page linked from the sidebar | Complete (code) |
+| Verify-chain control on audit page | Admin-only POST button on the audit log | Complete (code) |
 | Calendar create and edit | Calendar date-click schedules; events open hearing detail with edit action | Complete (code; browser not verified) |
 
 ## 2. Shell
 
 | Component | Where | Status | Gap |
 |---|---|---|---|
-| Collapsible sidebar, mobile drawer | `partials/sidebar.html`, `static/js/evitrack.js` | Partial | Admin links for approvals and failed logins absent |
+| Collapsible sidebar, mobile drawer | `partials/sidebar.html`, `static/js/evitrack.js` | Partial | Admin approval, failed-login, audit, and security links are present; responsive browser check remains |
 | Topbar global search, `/` shortcut, grouped dropdown | `partials/topbar.html`, `evitrack.js` | Partial | No full page; no arrow-key navigation |
 | Notification bell and dropdown | `partials/topbar.html`, polling in `evitrack.js` | Complete (code) | Sidebar count not refreshed by polling |
 | User menu | `partials/topbar.html` | Complete (code) | Preferences opens the dedicated notification settings page |
@@ -146,6 +146,7 @@ Shell status: sidebar and topbar share `templates/partials/`. Every authenticate
 | Date / step | What was run | Result |
 |---|---|---|
 | Session 13, Step 1 | Route list from urls.py; template grep matrix; targeted reads of base, sidebar, topbar, dashboard, case detail, evidence detail, upload, calendar, custody timeline view, core views, JS | Inventory recorded. No browser run yet. |
+| Session 16–17, Steps 2 batches 4–5 | Admin/audit/account/case/report page and action tests; reports case-picker, five PDFs, audit logging, access denial | Targeted tests passed; full suite 165 passed. Browser checks remain unverified because Playwright is unavailable. |
 
 ## 4a. Step 2, batch 1 (session 13)
 
@@ -163,10 +164,11 @@ Tables in sections 1 and 2 reflect the Step 1 inventory. These changes are done 
 | Sidebar admin links | Approval Queue and Failed Logins added | Complete (code) |
 | Dashboard charts | Added cases by type, hearings per week, open tasks per team member, evidence uploads per week | Complete (code), 3 tests |
 
-Still open after Step 2 batches 1 and 2:
+Still open after Step 2 batches 1–4:
 
-- Audit/admin page review, remaining partial account/case screen review, and report-page verification (TODO T7–T10).
-- Mobile and desktop checks of all changed pages: Step 4; Playwright unavailable in session 15.
+- Integrated UI review of search, custody, dashboard, evidence, and landing (TODO T10).
+- Design polish and desktop/mobile browser checks, including screenshots and dead-link crawl (TODO T11–T14); Playwright unavailable in session 16.
+- Docker/Celery/PostgreSQL, README, status reconciliation, and final QA (TODO T15–T25).
 
 ## 4b. Step 2, batch 2 (session 14)
 
@@ -175,6 +177,14 @@ Added the dedicated notification preferences page using existing user preference
 ## 4c. Step 2, batch 3 (session 15)
 
 Added the evidence tag selector (the backend filter already existed), tested matching results and tag scoping to accessible cases; added case Evidence bulk verification with CSRF, correct tab return, and reviewer/inaccessible-case denial; reconciled assignment visibility with Case Manager/Admin endpoint permissions and tested manager assign/remove plus case-lead denial. Targeted tests passed (7 evidence-page, 5 integrity, 2 assignment); full suite passed (153 tests), with Django and migration checks clean. Browser verification is not verified because Playwright is unavailable.
+
+## 4d. Step 2, batch 4 (session 16)
+
+Checked admin and audit navigation/access/actions, then fixed account/case gaps found during review: approval and rejection now accept only same-host return URLs; registration approval copy is accurate; user listing has status and role controls; case creation and close/archive transitions follow the documented role policy; case sorting preserves filters; and party controls/endpoints are limited to managers, admins, and case leads. Targeted tests passed (41 admin/audit, 21 account/case); full suite passed (164 tests), and Django/migration checks passed. Browser checks remain unverified because Playwright is unavailable.
+
+## 4e. Step 2, batch 5 (session 17)
+
+Added a case picker to the reports page, preserving all-accessible-cases behavior and providing a clear filter action. Tests verify selected/inaccessible cases, all five PDF links and exports, report audit events, and 404 for inaccessible case reports. Targeted tests passed (17); full suite passed (165 tests), with Django and migration checks clean. Browser verification remains unverified because Playwright is unavailable.
 
 ## 5. Blocked commands
 
