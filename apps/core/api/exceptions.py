@@ -1,6 +1,6 @@
 import logging
 
-from rest_framework.exceptions import AuthenticationFailed, NotAuthenticated, NotFound, PermissionDenied, Throttled, ValidationError
+from rest_framework.exceptions import APIException, AuthenticationFailed, NotAuthenticated, NotFound, PermissionDenied, Throttled, ValidationError
 from rest_framework.response import Response
 from rest_framework.views import exception_handler
 
@@ -14,6 +14,15 @@ ERROR_CODES = {
     404: 'not_found',
     429: 'throttled',
 }
+
+
+class ApiError(APIException):
+    def __init__(self, code, message, status_code, retry_after=None, extra=None):
+        super().__init__(detail=message)
+        self.api_code = code
+        self.status_code = status_code
+        self.retry_after = retry_after
+        self.extra = extra or {}
 
 
 def api_exception_handler(exc, context):
@@ -31,9 +40,9 @@ def api_exception_handler(exc, context):
         )
 
     status_code = response.status_code
-    code = ERROR_CODES.get(status_code, 'server_error')
+    code = getattr(exc, 'api_code', None) or ERROR_CODES.get(status_code, 'server_error')
     fields = None
-    retry_after = getattr(exc, 'wait', None) if isinstance(exc, Throttled) else None
+    retry_after = getattr(exc, 'wait', None) if isinstance(exc, Throttled) else getattr(exc, 'retry_after', None)
 
     if isinstance(exc, ValidationError):
         fields = response.data
@@ -54,8 +63,7 @@ def api_exception_handler(exc, context):
         'code': code,
         'message': message,
         'fields': fields,
-        'retry_after': retry_after,
+        'retry_after': int(retry_after) if retry_after is not None else None,
+        **getattr(exc, 'extra', {}),
     }
-    if isinstance(exc, Throttled):
-        response.data['retry_after'] = int(retry_after) if retry_after is not None else None
     return response

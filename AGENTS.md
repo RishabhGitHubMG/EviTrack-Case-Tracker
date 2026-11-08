@@ -53,3 +53,12 @@ Do not start the next slice until the current slice's Definition of Done in `WOR
 
 ## 7. Reporting format (end of every batch, max 4 lines)
 `Done: <items>` · `Left in slice: <n>` · `Not verified: <items>` · `Next: <item>`
+
+## 8. Two-agent mode
+- Agent A is BACKEND. It owns `apps/`, `config/`, backend tests, `requirements/`, `docs/TODO_BACKEND.md`, `docs/API_CONTRACT.md` and `docs/TODO.md`.
+- Agent B is FRONTEND. It owns `frontend/`, `e2e/`, `docs/TODO_FRONTEND.md` and `docs/screenshots/`.
+- Neither agent edits the other's files.
+- `docs/PROGRESS.md` is append-only. Prefix every line with `[BE]` or `[FE]`. On a merge conflict there, keep both sets of lines.
+- Agent A stays one slice ahead of Agent B. Agent B builds a slice's screens only after Agent A's API for that slice is merged to `main` and documented in `API_CONTRACT.md`.
+- Frontend requests for API changes go under "Requests to backend" at the bottom of `docs/API_CONTRACT.md`. Agent A handles them in its next batch.
+- Each agent works on its own branch and merges `origin/main` often.

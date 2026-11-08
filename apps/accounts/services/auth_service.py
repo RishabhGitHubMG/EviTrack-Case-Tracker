@@ -81,6 +81,15 @@ def verify_email_otp(user: User, code: str) -> bool:
     return False
 
 
+def mask_email(email: str) -> str:
+    parts = email.split('@')
+    if len(parts) != 2:
+        return email
+    name, domain = parts
+    masked_name = name[:2] + '***' if len(name) > 2 else name + '***'
+    return f"{masked_name}@{domain}"
+
+
 def generate_otp_secret() -> str:
     """
     Generate a 32-character base32 secret suitable for TOTP authentication.

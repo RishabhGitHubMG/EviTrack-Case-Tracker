@@ -52,6 +52,7 @@ from apps.accounts.services import (
     generate_otp_secret,
     generate_qr_code_b64,
     get_otp_uri,
+    mask_email,
     send_approval_email,
     send_email_otp,
     send_rejection_email,
@@ -225,12 +226,7 @@ class OTPVerifyView(FormView):
         return context
 
     def _mask_email(self, email: str) -> str:
-        parts = email.split('@')
-        if len(parts) == 2:
-            name, domain = parts
-            masked_name = name[:2] + '***' if len(name) > 2 else name + '***'
-            return f"{masked_name}@{domain}"
-        return email
+        return mask_email(email)
 
     def form_valid(self, form: OTPVerificationForm) -> HttpResponse:
         code = form.cleaned_data['otp_code']
