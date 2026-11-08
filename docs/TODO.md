@@ -4,7 +4,7 @@ Tasks are ordered by priority, then by dependency. A task is complete only after
 
 ## Frontend screens
 - [x] T1 — [High] Add notification preferences (reminder timing and channels), migration, scheduler integration, page, and tests. Note: targeted account/reminder tests passed (19); migration applied; Playwright browser check not verified because Playwright is unavailable in the environment.
-- [x] T2 — [High] Add hearing create/edit actions from the calendar and verify both flows. Note: case-scoped schedule control and date-click prefill added; calendar/detail/edit route tests passed (4); Playwright browser check not verified because Playwright is unavailable.
+- [x] T2 — [High] Add hearing create/edit actions from the calendar and verify both flows. Note: case-scoped schedule control and date-click prefill added; detail/edit route tests passed (5), including read-only reviewer restrictions; Playwright browser check not verified because Playwright is unavailable.
 - [x] T3 — [High] Add read-state and notification-type filters; test them. Note: all/read/unread and type filters, combined filters, and invalid-value behavior pass notification tests (15).
 - [ ] T4 — [High] Confirm and, if needed, fix the evidence-list tag filter; test filtered results. Note: pending.
 - [ ] T5 — [High] Add a bulk-verify control to the case Evidence tab and verify the result. Note: pending.

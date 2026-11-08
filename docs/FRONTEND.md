@@ -84,7 +84,7 @@ Shell status: sidebar and topbar share `templates/partials/`. Every authenticate
 | URL name | Path | Template | Linked from | Gaps | Status |
 |---|---|---|---|---|---|
 | `hearings:hearing_list` | `/hearings/` | `hearings/hearing_list.html` | Sidebar | Outcome column and Calendar View link | Partial |
-| `hearings:calendar` | `/hearings/calendar/` | `hearings/calendar.html` | Hearing list, task list | Month, week, list views; case selector and date-click hearing creation; existing hearing events open detail, which links to edit. Four route/template tests pass; browser not verified. | Complete (code) |
+| `hearings:calendar` | `/hearings/calendar/` | `hearings/calendar.html` | Hearing list, task list | Month, week, list views; case selector and date-click hearing creation; existing hearing events open detail, which links to edit. Read-only reviewers cannot create, edit, or record outcomes. Five route/template tests pass; browser not verified. | Complete (code) |
 | `hearings:hearing_create` | `/hearings/case/<case_id>/new/` | `hearings/hearing_create.html` | Case Hearings tab, calendar case selector/date click | Calendar date is prefilled on the form | Complete (code) |
 | `hearings:hearing_detail` | `/hearings/<pk>/` | `hearings/hearing_detail.html` | List, calendar events | Outcome modal (`hearing_outcome`) with next hearing date and Edit Hearing action | Complete (code) |
 | `hearings:hearing_update` | `/hearings/<pk>/edit/` | `hearings/hearing_update.html` | Detail | none found in review | Complete (code) |
@@ -172,7 +172,7 @@ Still open in Step 2:
 
 ## 4b. Step 2, batch 2 (session 14)
 
-Added the dedicated notification preferences page using existing user preference fields, with an additive migration for defaults and rescheduling of pending reminders after changes. The calendar now supports case-scoped hearing creation, date prefill from clicked dates, and event-to-detail/edit navigation. Notification listing now filters by read state and type. Targeted tests passed (19 account/reminder, 4 calendar, 15 notification tests); full suite passed (146 tests), `manage.py check`, migration check, and Node syntax check passed. Browser checks are not verified because Playwright is unavailable in this environment.
+Added the dedicated notification preferences page using existing user preference fields, with an additive migration for defaults and rescheduling of pending reminders after changes. The calendar now supports case-scoped hearing creation, date prefill from clicked dates, and event-to-detail/edit navigation. Notification listing now filters by read state and type. Targeted tests passed (19 account/reminder, 5 calendar including reviewer restrictions, 15 notification tests); full suite passed (147 tests), `manage.py check`, migration check, and Node syntax check passed. Browser checks are not verified because Playwright is unavailable in this environment.
 
 ## 5. Blocked commands
 
