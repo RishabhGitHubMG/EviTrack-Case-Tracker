@@ -95,6 +95,20 @@
             </li>
 
             <li class="sidebar-item">
+                <a href="{% url 'accounts:user_approval' %}" class="sidebar-link {% if request.resolver_match.url_name == 'user_approval' %}active{% endif %}">
+                    <i class="bi bi-person-check"></i>
+                    <span>Approval Queue</span>
+                </a>
+            </li>
+
+            <li class="sidebar-item">
+                <a href="{% url 'accounts:failed_logins' %}" class="sidebar-link {% if request.resolver_match.url_name == 'failed_logins' %}active{% endif %}">
+                    <i class="bi bi-shield-x"></i>
+                    <span>Failed Logins</span>
+                </a>
+            </li>
+
+            <li class="sidebar-item">
                 <a href="{% url 'audit:audit_log_list' %}" class="sidebar-link {% if request.resolver_match.app_name == 'audit' or '/audit/' in request.path %}active{% endif %}">
                     <i class="bi bi-journal-text"></i>
                     <span>Audit Log</span>

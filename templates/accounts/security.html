@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block title %}Security &amp; Policy - EviTrack{% endblock %}
+{% block breadcrumbs %}<li class="active" aria-current="page">Security &amp; Policy</li>{% endblock %}
+
+{% block content %}
+<div class="page-header mb-4">
+    <h1 class="page-title">Security &amp; Policy</h1>
+    <p class="text-muted mb-0">Current account, session and evidence-handling settings. These are read from server configuration and cannot be changed here.</p>
+</div>
+
+<div class="row g-3">
+    <div class="col-lg-6">
+        <section class="card-ev p-4 h-100" aria-labelledby="sign-in-heading">
+            <h2 class="h6 fw-semibold mb-3" id="sign-in-heading"><i class="bi bi-shield-lock me-1"></i> Sign-in</h2>
+            <dl class="row mb-0 font-sm">
+                <dt class="col-7 fw-normal text-muted">Email code on every sign-in</dt>
+                <dd class="col-5 mb-2"><span class="badge-ev badge-verified">Required</span></dd>
+                <dt class="col-7 fw-normal text-muted">Authenticator app (TOTP)</dt>
+                <dd class="col-5 mb-2"><span class="badge-ev">Optional per user</span></dd>
+                <dt class="col-7 fw-normal text-muted">Minimum password length</dt>
+                <dd class="col-5 mb-2">{{ password_min_length }} characters</dd>
+                <dt class="col-7 fw-normal text-muted">Email code validity</dt>
+                <dd class="col-5 mb-2">{{ email_otp_ttl_minutes }} minutes</dd>
+                <dt class="col-7 fw-normal text-muted">Wrong codes before lock</dt>
+                <dd class="col-5 mb-2">{{ email_otp_max_attempts }} (locked {{ email_otp_lockout_minutes }} minutes)</dd>
+                <dt class="col-7 fw-normal text-muted">Failed passwords before account lock</dt>
+                <dd class="col-5 mb-2">{{ lockout_failure_limit }} (cool-off {{ lockout_cooloff_minutes }} minutes)</dd>
+                <dt class="col-7 fw-normal text-muted">Sign-in attempts allowed</dt>
+                <dd class="col-5 mb-0">{{ login_rate_limit }} per {{ login_rate_window_seconds }} seconds</dd>
+            </dl>
+        </section>
+    </div>
+
+    <div class="col-lg-6">
+        <section class="card-ev p-4 h-100" aria-labelledby="session-heading">
+            <h2 class="h6 fw-semibold mb-3" id="session-heading"><i class="bi bi-hourglass-split me-1"></i> Session and evidence</h2>
+            <dl class="row mb-0 font-sm">
+                <dt class="col-7 fw-normal text-muted">Inactivity timeout</dt>
+                <dd class="col-5 mb-2">{{ session_timeout_minutes }} minutes</dd>
+                <dt class="col-7 fw-normal text-muted">Warning shown before timeout</dt>
+                <dd class="col-5 mb-2">{{ session_warning_minutes }} minutes in</dd>
+                <dt class="col-7 fw-normal text-muted">Maximum file size per upload</dt>
+                <dd class="col-5 mb-2">{{ upload_limit_mb }} MB</dd>
+                <dt class="col-7 fw-normal text-muted">Audit log</dt>
+                <dd class="col-5 mb-0">Hash-chained, verifiable</dd>
+            </dl>
+        </section>
+    </div>
+</div>
+
+<div class="card-ev p-4 mt-3 d-flex flex-wrap gap-2 align-items-center justify-content-between">
+    <div>
+        <h2 class="h6 fw-semibold mb-1">Verify the audit chain</h2>
+        <p class="text-muted font-sm mb-0">Use Verify chain on the audit log to check the hash links across recent entries.</p>
+    </div>
+    <div class="d-flex gap-2 flex-wrap">
+        <a href="{% url 'audit:audit_log_list' %}" class="btn btn-ev-outline btn-sm"><i class="bi bi-journal-text"></i> Open audit log</a>
+        <a href="{% url 'accounts:otp_setup' %}" class="btn btn-ev-outline btn-sm"><i class="bi bi-phone"></i> My authenticator app</a>
+    </div>
+</div>
+{% endblock %}

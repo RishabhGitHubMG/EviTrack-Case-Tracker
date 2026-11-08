@@ -1,9 +1,11 @@
 import csv
 import json
 
+from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Q
 from django.http import HttpResponse
+from django.shortcuts import redirect
 from django.utils.dateparse import parse_date
 from django.views.generic import ListView, View
 
@@ -85,6 +87,16 @@ class AuditLogListView(AdminRequiredMixin, ListView):
 class AuditLogExportView(AdminRequiredMixin, View):
     def get(self, request):
         return export_audit_csv(filtered_audit_logs(request))
+
+
+class AuditVerifyChainView(AdminRequiredMixin, View):
+    def post(self, request):
+        result = AuditLog.verify_chain()
+        if result.is_valid:
+            messages.success(request, f'Audit chain verified: {result.verified_count} entries checked.')
+        else:
+            messages.error(request, f'Audit chain verification failed: {result.error}')
+        return redirect('audit:audit_log_list')
 
 
 class MyActivityView(LoginRequiredMixin, ListView):

@@ -20,5 +20,5 @@ urlpatterns = [
     path('users/<int:pk>/reject/', views.RejectUserView.as_view(), name='user_reject'),
     path('users/<int:pk>/role/', views.UserRoleChangeView.as_view(), name='user_role'),
     path('failed-logins/', views.FailedLoginListView.as_view(), name='failed_logins'),
-    path('security/', RedirectView.as_view(pattern_name='accounts:otp_setup'), name='security_settings'),
+    path('security/', views.SecurityPolicyView.as_view(), name='security_settings'),
 ]
