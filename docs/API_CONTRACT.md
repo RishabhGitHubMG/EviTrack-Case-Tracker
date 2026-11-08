@@ -18,8 +18,8 @@ No API. Static content. (Optional later: public `GET /public/stats/`, not requir
 ## S2 – Authentication and registration
 | Method | Path | Body → Response | Perm |
 |---|---|---|---|
-| POST | `/auth/register/` | `{name,email,phone,requested_role,password,password2}` → 201 `{status:"pending_approval"}` | public |
-| POST | `/auth/login/` | `{email,password}` → `{status:"otp_required",otp:{sent_to_masked,expires_in,resend_in}}` · errors: `account_pending`, `account_locked`(+`retry_after`), `validation_error`(+`attempts_left`) | public, throttled |
+| POST | `/auth/register/` | `{name,email,phone?,requested_role,password,password2}` → 201 `{status:"pending_approval"}` | public |
+| POST | `/auth/login/` | `{email,password,remember_me?}` → `{status:"otp_required",otp:{sent_to_masked,expires_in,resend_in}}` · errors: `account_pending`, `account_locked`(+`retry_after`), `validation_error`(+`attempts_left`) | public, throttled |
 | POST | `/auth/otp/verify/` | `{code}` → `{status:"authenticated"\|"totp_required"}` · errors `otp_invalid`(+`attempts_left`), `otp_locked`(+`retry_after`) | pending-auth |
 | POST | `/auth/otp/resend/` | → `{resend_in}` · 429 during cooldown | pending-auth |
 | POST | `/auth/totp/verify/` | `{code}` → `{status:"authenticated"}` | pending-auth |
@@ -27,7 +27,7 @@ No API. Static content. (Optional later: public `GET /public/stats/`, not requir
 | POST | `/auth/logout/` | → 204 | Any |
 | POST | `/auth/session/ping/` | → `{expires_in}` | Any |
 
-`User` = `{id,name,email,phone,role,permissions:string[],preferences:{theme,email_enabled,sms_enabled,reminder_hearing:int[],reminder_deadline:int[]},totp_enabled,last_login,unread_notifications,pending_custody,pending_approvals?}`.
+`User` = `{id,name,email,phone,role,permissions:string[],preferences:{theme,email_enabled,sms_enabled,reminder_hearing:int[],reminder_deadline:int[]},totp_enabled,last_login,unread_notifications,pending_custody,pending_approvals:int|null}`. `pending_approvals` is `null` for non-admins. OTP and TOTP steps use the pending-auth session cookie; all POST requests require CSRF.
 
 ## S3 – App shell
 | Method | Path | Notes | Perm |
