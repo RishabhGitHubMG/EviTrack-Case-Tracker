@@ -1,6 +1,9 @@
-import { useEffect } from 'react';
-import { Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
+import { lazy, useEffect } from 'react';
+import { Route, Routes, useLocation, useNavigate } from 'react-router-dom';
+import { PublicLayout } from './components/layout/PublicLayout';
 import DesignPage from './DesignPage';
+
+const LandingPage = lazy(() => import('./features/landing/pages/LandingPage'));
 
 function SessionExpirationHandler() {
   const navigate = useNavigate();
@@ -23,7 +26,9 @@ export default function App() {
     <SessionExpirationHandler />
     <Routes>
       {import.meta.env.DEV && <Route path="/design" element={<DesignPage />} />}
-      <Route path="/" element={<Navigate to={import.meta.env.DEV ? '/design' : '/not-found'} replace />} />
+      <Route element={<PublicLayout />}>
+        <Route path="/" element={<LandingPage />} />
+      </Route>
       <Route path="/session-expired" element={<main className="design-page"><h1>Session expired</h1><p>Please sign in again.</p></main>} />
       <Route path="*" element={<main className="design-page"><h1>Page not found</h1></main>} />
     </Routes>

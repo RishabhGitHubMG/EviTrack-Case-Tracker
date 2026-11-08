@@ -21,7 +21,7 @@ export default {
       },
       fontFamily: {
         sans: ['Inter', 'sans-serif'],
-        serif: ['Source Serif 4', 'serif'],
+        serif: ['"Source Serif 4 Variable"', '"Source Serif 4"', 'Georgia', 'serif'],
         mono: ['JetBrains Mono', 'monospace'],
       },
       borderRadius: { card: '12px' },
