@@ -45,15 +45,10 @@ def schedule_hearing_reminders(hearing: Hearing) -> list[Reminder]:
         is_active=True
     ).distinct()
 
-    reminder_defaults = getattr(settings, 'REMINDER_DEFAULTS', {})
-    fallback_minutes = reminder_defaults.get(
-        'hearing_reminders', [7 * 24 * 60, 24 * 60, 120]  # 7d, 1d, 2h
-    )
-
     created_reminders: list[Reminder] = []
 
     for user in assigned_users:
-        user_offsets = user.hearing_reminder_minutes or fallback_minutes
+        user_offsets = user.hearing_reminder_minutes
 
         # Determine channels based on preferences
         channels: list[str] = []
@@ -63,9 +58,6 @@ def schedule_hearing_reminders(hearing: Hearing) -> list[Reminder]:
             channels.append(Reminder.Channel.INAPP)
         if getattr(user, 'notify_sms', False) and user.phone:
             channels.append(Reminder.Channel.SMS)
-
-        if not channels:
-            channels = [Reminder.Channel.EMAIL, Reminder.Channel.INAPP]
 
         for offset in user_offsets:
             remind_at = hearing_dt - timedelta(minutes=int(offset))
@@ -107,11 +99,7 @@ def schedule_task_reminders(task: Task) -> list[Reminder]:
     if not user.is_active:
         return []
 
-    reminder_defaults = getattr(settings, 'REMINDER_DEFAULTS', {})
-    fallback_minutes = reminder_defaults.get(
-        'deadline_reminders', [3 * 24 * 60, 24 * 60]  # 3 days, 1 day
-    )
-    user_offsets = user.deadline_reminder_minutes or fallback_minutes
+    user_offsets = user.deadline_reminder_minutes
 
     channels: list[str] = []
     if getattr(user, 'notify_email', True):
@@ -120,9 +108,6 @@ def schedule_task_reminders(task: Task) -> list[Reminder]:
         channels.append(Reminder.Channel.INAPP)
     if getattr(user, 'notify_sms', False) and user.phone:
         channels.append(Reminder.Channel.SMS)
-
-    if not channels:
-        channels = [Reminder.Channel.EMAIL, Reminder.Channel.INAPP]
 
     created_reminders: list[Reminder] = []
 
@@ -149,6 +134,21 @@ def schedule_task_reminders(task: Task) -> list[Reminder]:
                 created_reminders.append(reminder)
 
     return created_reminders
+
+
+def reschedule_user_reminders(user: User) -> None:
+    now = timezone.now()
+    Reminder.objects.filter(user=user, status=Reminder.Status.PENDING).delete()
+
+    hearings = Hearing.objects.filter(hearing_date__gt=now).filter(
+        Q(case__assignments__user=user) | Q(case__created_by=user) | Q(created_by=user)
+    ).distinct()
+    for hearing in hearings:
+        schedule_hearing_reminders(hearing)
+
+    tasks = Task.objects.filter(assigned_to=user, due_date__gt=now).exclude(status=Task.Status.COMPLETED)
+    for task in tasks:
+        schedule_task_reminders(task)
 
 
 def cancel_pending_reminders(target: Any) -> int:

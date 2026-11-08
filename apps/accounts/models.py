@@ -34,6 +34,14 @@ class UserManager(BaseUserManager):
         return self.create_user(email, password, **extra_fields)
 
 
+def default_hearing_reminder_minutes():
+    return [10080, 1440, 120]
+
+
+def default_deadline_reminder_minutes():
+    return [4320, 1440]
+
+
 class User(AbstractUser):
     class Role(models.TextChoices):
         ADMIN = 'admin', 'Admin'
@@ -57,8 +65,8 @@ class User(AbstractUser):
     notify_inapp = models.BooleanField(default=True)
 
     # Reminder preferences (minutes before)
-    hearing_reminder_minutes = models.JSONField(default=list, blank=True)  # e.g. [10080, 1440, 120]
-    deadline_reminder_minutes = models.JSONField(default=list, blank=True)  # e.g. [4320, 1440]
+    hearing_reminder_minutes = models.JSONField(default=default_hearing_reminder_minutes, blank=True)
+    deadline_reminder_minutes = models.JSONField(default=default_deadline_reminder_minutes, blank=True)
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['first_name', 'last_name']

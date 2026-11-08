@@ -7,15 +7,32 @@
 {% block content %}
 <div class="page-header mb-4 d-flex justify-content-between align-items-center flex-wrap gap-2">
     <h1 class="page-title">Calendar</h1>
-    <div class="font-sm d-flex gap-3">
+    <div class="d-flex flex-wrap align-items-center gap-3">
+        {% if can_manage_hearings %}
+            <form class="d-flex align-items-end gap-2" id="scheduleHearingForm">
+                <div>
+                    <label class="form-label font-sm mb-1" for="calendarCaseSelect">Schedule hearing for</label>
+                    <select class="form-select form-select-sm" id="calendarCaseSelect" aria-label="Case for new hearing">
+                        <option value="">Choose a case</option>
+                        {% for case in accessible_cases %}
+                            <option value="{{ case.pk }}">{{ case.case_no }} — {{ case.title }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <button class="btn btn-ev-primary btn-sm" id="scheduleHearingButton" type="submit" disabled>Schedule</button>
+            </form>
+        {% endif %}
+        <div class="font-sm d-flex gap-3">
         <span><span class="legend-dot" style="background:#14213D"></span> Hearings</span>
         <span><span class="legend-dot" style="background:#F2A900"></span> Tasks</span>
-        <span><span class="legend-dot" style="background:#DC2626"></span> Filing deadlines</span>
+            <span><span class="legend-dot" style="background:#DC2626"></span> Filing deadlines</span>
+        </div>
     </div>
 </div>
 
 <div class="card-ev p-3">
-    <div id="calendar" data-events-url="{% url 'hearings_api:calendar_events_api' %}"></div>
+    <p id="calendarActionStatus" class="visually-hidden" role="status" aria-live="polite"></p>
+    <div id="calendar" data-events-url="{% url 'hearings_api:calendar_events_api' %}" data-create-url="{% url 'hearings:hearing_create' case_id=0 %}"></div>
 </div>
 {% endblock %}
 

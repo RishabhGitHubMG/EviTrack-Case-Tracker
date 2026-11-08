@@ -10,8 +10,12 @@ pytestmark = pytest.mark.django_db
 def inbox(make_user):
     owner = make_user()
     other = make_user()
-    own_unread = Notification.objects.create(user=owner, message='Own unread', link='/cases/')
-    own_read = Notification.objects.create(user=owner, message='Own read', is_read=True)
+    own_unread = Notification.objects.create(
+        user=owner, message='Own unread', link='/cases/', notification_type=Notification.NotificationType.WARNING
+    )
+    own_read = Notification.objects.create(
+        user=owner, message='Own read', is_read=True, notification_type=Notification.NotificationType.SUCCESS
+    )
     foreign = Notification.objects.create(user=other, message='Foreign unread')
     return {'owner': owner, 'other': other, 'own_unread': own_unread, 'own_read': own_read, 'foreign': foreign}
 
@@ -40,10 +44,41 @@ def test_list_page_renders_only_own_notifications(client_for, inbox):
 
 
 def test_unread_filter_hides_read_items(client_for, inbox):
-    response = client_for(inbox['owner']).get(reverse('notifications:notification_list'), {'unread': '1'})
+    response = client_for(inbox['owner']).get(reverse('notifications:notification_list'), {'read': 'unread'})
 
     messages = [n.message for n in response.context['notifications']]
     assert messages == ['Own unread']
+
+
+def test_read_filter_shows_only_read_items(client_for, inbox):
+    response = client_for(inbox['owner']).get(reverse('notifications:notification_list'), {'read': 'read'})
+
+    assert [notification.message for notification in response.context['notifications']] == ['Own read']
+
+
+def test_type_filter_shows_only_own_matching_notifications(client_for, inbox):
+    response = client_for(inbox['owner']).get(reverse('notifications:notification_list'), {'type': 'warning'})
+
+    assert [notification.message for notification in response.context['notifications']] == ['Own unread']
+    assert response.context['type_filter'] == 'warning'
+
+
+def test_read_and_type_filters_can_be_combined(client_for, inbox):
+    response = client_for(inbox['owner']).get(
+        reverse('notifications:notification_list'), {'read': 'read', 'type': 'success'}
+    )
+
+    assert [notification.message for notification in response.context['notifications']] == ['Own read']
+
+
+def test_invalid_notification_filters_fall_back_to_all(client_for, inbox):
+    response = client_for(inbox['owner']).get(
+        reverse('notifications:notification_list'), {'read': 'unknown', 'type': 'unknown'}
+    )
+
+    assert {notification.message for notification in response.context['notifications']} == {'Own unread', 'Own read'}
+    assert response.context['read_filter'] == 'all'
+    assert response.context['type_filter'] == ''
 
 
 def test_bell_context_exposes_count_and_recent_items(client_for, inbox):

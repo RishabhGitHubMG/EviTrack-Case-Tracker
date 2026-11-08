@@ -37,6 +37,7 @@ from apps.accounts.models import EmailOTPChallenge
 from apps.core.rate_limit import is_rate_limited
 from apps.accounts.forms import (
     LoginForm,
+    NotificationPreferencesForm,
     OTPSetupForm,
     OTPVerificationForm,
     PasswordChangeForm,
@@ -316,6 +317,24 @@ class LogoutView(View):
 # ==============================================================================
 # USER PROFILE & SELF-SERVICE VIEWS
 # ==============================================================================
+
+class NotificationPreferencesView(LoginRequiredMixin, UpdateView):
+    model = User
+    form_class = NotificationPreferencesForm
+    template_name = 'accounts/notification_preferences.html'
+    success_url = reverse_lazy('accounts:preferences')
+
+    def get_object(self, queryset=None) -> User:
+        return self.request.user
+
+    def form_valid(self, form: NotificationPreferencesForm) -> HttpResponse:
+        response = super().form_valid(form)
+        from apps.hearings.services import reschedule_user_reminders
+
+        reschedule_user_reminders(self.request.user)
+        messages.success(self.request, 'Notification preferences saved.')
+        return response
+
 
 class ProfileView(LoginRequiredMixin, UpdateView):
     """
