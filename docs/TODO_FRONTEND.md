@@ -20,15 +20,15 @@ IDs: `FE-S<slice>-<n>`. Page visuals: `UI_SPEC.md` (section in brackets). Behavi
 - [ ] FE-S1-06 (H) Playwright: J1 first half (landing renders, CTAs navigate), mobile 390px layout, axe check, Lighthouse a11y ≥ 95 (14 browser checks pass; axe reports no serious/critical violations; four light/dark screenshots saved; Lighthouse score not run)
 
 ## S2 Register, Login, OTP, TOTP [UI §2.2–2.5; UX J1, J2]
-- [ ] FE-S2-01 (H) `AuthLayout` (split screen, hidden art on mobile)
-- [ ] FE-S2-02 (H) Register page: zod schema, inline errors, strength meter, role select, terms, success → `/register/pending`
-- [ ] FE-S2-03 (H) Pending-approval page and the amber "awaiting approval" state on login
-- [ ] FE-S2-04 (H) Login page: show/hide password, attempts-left error, locked state with countdown, `?next=` support
-- [ ] FE-S2-05 (H) OTP page: six boxes (auto-advance, paste, numeric keypad), expiry timer, resend with 30 s cooldown, attempts left, lock state; masked email
-- [ ] FE-S2-06 (M) TOTP page (only when API says `totp_required`)
-- [ ] FE-S2-07 (H) `AuthProvider`, `useSession`, `RequireAuth`, redirect rules (signed-in users away from `/login`), `/session-expired` page
-- [ ] FE-S2-08 (H) Playwright: J1 register→pending; J2 login→OTP→dashboard placeholder; wrong password; 5 failures lock; wrong OTP; resend cooldown; axe; mobile
-- [ ] FE-S2-09 (M) Vitest: login state machine, OTP input, error mapping
+- [x] FE-S2-01 (H) `AuthLayout` (split screen, hidden art on mobile)
+- [x] FE-S2-02 (H) Register page: zod schema, inline errors, strength meter, role select, terms, success → `/register/pending`
+- [x] FE-S2-03 (H) Pending-approval page and the amber "awaiting approval" state on login
+- [x] FE-S2-04 (H) Login page: show/hide password, attempts-left error, locked state with countdown, `?next=` support
+- [x] FE-S2-05 (H) OTP page: six boxes (auto-advance, paste, numeric keypad), expiry timer, resend with 30 s cooldown, attempts left, lock state; masked email
+- [x] FE-S2-06 (M) TOTP page (only when API says `totp_required`)
+- [x] FE-S2-07 (H) `AuthProvider`, `useSession`, `RequireAuth`, redirect rules (signed-in users away from `/login`), `/session-expired` page
+- [ ] FE-S2-08 (H) Playwright: J1 register→pending; J2 login→OTP→dashboard placeholder; wrong password; 5 failures lock; wrong OTP; resend cooldown; axe; mobile (registration/pending, login→OTP, wrong OTP, cooldown, and axe/mobile pass; successful OTP/TOTP and five-failure lockout not verified because `EVITRACK_PLAYWRIGHT_EMAIL_DIR` is unset)
+- [x] FE-S2-09 (M) Vitest: login state machine, OTP input, error mapping (14 unit tests pass across auth provider guards, login errors, CSRF/error normalization, and OTP input)
 
 ## S3 App shell [UI §1; UX §4, §12]
 - [ ] FE-S3-01 (H) `AppShell`: sidebar (groups, active bar, badges, collapse to rail, mobile drawer), top bar, page header, breadcrumbs, footer note

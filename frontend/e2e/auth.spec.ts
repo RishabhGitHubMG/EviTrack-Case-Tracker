@@ -13,10 +13,14 @@ test('J1 request access reaches pending approval and sign-in explains the state'
   const email = `frontend-${Date.now()}@demo.evitrack.test`;
   await page.goto('/register');
   await expect(page.getByRole('heading', { name: 'Request access' })).toBeVisible();
+  await page.screenshot({ path: '../docs/screenshots/S2/register-390.png', fullPage: true });
   await expectAccessible(page);
 
   await page.getByRole('button', { name: 'Request access' }).click();
   await expect(page.getByText('Accept the prototype terms before submitting.')).toBeVisible();
+  await page.getByRole('checkbox', { name: 'Accept the prototype terms' }).check();
+  await page.getByRole('button', { name: 'Request access' }).click();
+  await expect(page.getByText('Enter your full name.')).toBeVisible();
   await page.getByLabel('Full name').fill('EviTrack Test User');
   await page.getByLabel('Email').fill(email);
   await page.locator('input[name="password"]').fill('Case#SafePass2026');
@@ -34,9 +38,30 @@ test('J1 request access reaches pending approval and sign-in explains the state'
   await expectAccessible(page);
 });
 
+test('J2 demo credentials start an email OTP challenge', async ({ page }) => {
+  await page.setViewportSize(mobile);
+  await page.goto('/login?next=%2Fdashboard');
+  await page.getByLabel('Email').fill('admin@demo.evitrack.test');
+  await page.locator('input[name="password"]').fill('Demo#Pass2026');
+  await page.getByRole('button', { name: 'Continue' }).click();
+  await expect(page).toHaveURL(/\/login\/otp$/);
+  await expect(page.getByRole('heading', { name: 'Check your email' })).toBeVisible();
+  await expect(page.getByText(/We sent a 6-digit code to/)).toBeVisible();
+  await expect(page.getByRole('button', { name: /Resend code in/ })).toBeDisabled();
+  await page.screenshot({ path: '../docs/screenshots/S2/otp-390.png', fullPage: true });
+  await expectAccessible(page);
+
+  const digits = page.getByRole('group', { name: 'One-time code' }).getByRole('textbox');
+  await digits.first().focus();
+  await page.keyboard.type('999999');
+  await page.getByRole('button', { name: 'Verify' }).click();
+  await expect(page.getByRole('alert')).toContainText('attempts left.');
+});
+
 test('login validates input and toggles password visibility', async ({ page }) => {
   await page.goto('/login?next=%2Fdashboard');
   await expect(page.getByRole('heading', { name: 'Sign in' })).toBeVisible();
+  await page.screenshot({ path: '../docs/screenshots/S2/login-1440.png', fullPage: true });
   const password = page.getByRole('textbox', { name: /Password/ });
   await expect(password).toHaveAttribute('type', 'password');
   await page.getByRole('button', { name: 'Show password' }).click();
